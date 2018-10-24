@@ -24,30 +24,30 @@ import (
 )
 
 // Build the dynamically generated Get Actions part of the schema
-func genActionClassFieldsFromSchema(g *GraphQL, getActionsAndThings *map[string]*graphql.Object) (*graphql.Object, error) {
+func genNetworkActionClassFieldsFromSchema(g *GraphQL, networkGetActionsAndThings *map[string]*graphql.Object, weaviate string) (*graphql.Object, error) {
 	actionClassFields := graphql.Fields{}
 
 	for _, class := range g.databaseSchema.ActionSchema.Schema.Classes {
-		singleActionClassField, singleActionClassObject := genSingleActionClassField(class, getActionsAndThings)
+		singleActionClassField, singleActionClassObject := genSingleNetworkActionClassField(class, networkGetActionsAndThings, weaviate)
 		actionClassFields[class.Class] = singleActionClassField
 		// this line assigns the created class to a Hashmap which is used in thunks to handle cyclical relationships (Classes with other Classes as properties)
-		(*getActionsAndThings)[class.Class] = singleActionClassObject
+		(*networkGetActionsAndThings)[class.Class] = singleActionClassObject
 	}
 
-	localGetActions := graphql.ObjectConfig{
-		Name:        "WeaviateLocalGetActionsObj",
+	networkGetActions := graphql.ObjectConfig{
+		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGet", weaviate, "ActionsObj"),
 		Fields:      actionClassFields,
-		Description: "Type of Actions i.e. Actions classes to Get on the Local Weaviate",
+		Description: "Type of Actions i.e. Actions classes to Get on the Network Weaviate",
 	}
 
-	return graphql.NewObject(localGetActions), nil
+	return graphql.NewObject(networkGetActions), nil
 }
 
-func genSingleActionClassField(class *models.SemanticSchemaClass, getActionsAndThings *map[string]*graphql.Object) (*graphql.Field, *graphql.Object) {
-	singleActionClassPropertyFields := graphql.ObjectConfig{
-		Name: class.Class,
+func genSingleNetworkActionClassField(class *models.SemanticSchemaClass, networkGetActionsAndThings *map[string]*graphql.Object, weaviate string) (*graphql.Field, *graphql.Object) {
+	singleNetworkActionClassPropertyFields := graphql.ObjectConfig{
+		Name: fmt.Sprintf("%s%s", "Network", class.Class), //class.Class, // TODO
 		Fields: (graphql.FieldsThunk)(func() graphql.Fields {
-			singleActionClassPropertyFields, err := genSingleActionClassPropertyFields(class, getActionsAndThings)
+			singleActionClassPropertyFields, err := genSingleNetworkActionClassPropertyFields(class, networkGetActionsAndThings)
 
 			if err != nil {
 				panic("Failed to generate single Action Class property fields")
@@ -58,10 +58,10 @@ func genSingleActionClassField(class *models.SemanticSchemaClass, getActionsAndT
 		Description: class.Description,
 	}
 
-	singleActionClassPropertyFieldsObj := graphql.NewObject(singleActionClassPropertyFields)
+	singleNetworkActionClassPropertyFieldsObj := graphql.NewObject(singleNetworkActionClassPropertyFields)
 
-	singleActionClassPropertyFieldsField := &graphql.Field{
-		Type:        graphql.NewList(singleActionClassPropertyFieldsObj),
+	singleNetworkActionClassPropertyFieldsField := &graphql.Field{
+		Type:        graphql.NewList(singleNetworkActionClassPropertyFieldsObj),
 		Description: class.Description,
 		Args: graphql.FieldConfigArgument{
 			"first": &graphql.ArgumentConfig{
@@ -78,11 +78,11 @@ func genSingleActionClassField(class *models.SemanticSchemaClass, getActionsAndT
 			return result, err
 		},
 	}
-	return singleActionClassPropertyFieldsField, singleActionClassPropertyFieldsObj
+	return singleNetworkActionClassPropertyFieldsField, singleNetworkActionClassPropertyFieldsObj
 }
 
-func genSingleActionClassPropertyFields(class *models.SemanticSchemaClass, getActionsAndThings *map[string]*graphql.Object) (graphql.Fields, error) {
-	singleActionClassPropertyFields := graphql.Fields{}
+func genSingleNetworkActionClassPropertyFields(class *models.SemanticSchemaClass, networkGetActionsAndThings *map[string]*graphql.Object) (graphql.Fields, error) {
+	singleNetworkActionClassPropertyFields := graphql.Fields{}
 
 	for _, property := range class.Properties {
 		propertyType, err := schema.GetPropertyDataType(class, property.Name)
@@ -97,7 +97,7 @@ func genSingleActionClassPropertyFields(class *models.SemanticSchemaClass, getAc
 			dataTypeClasses := make([]*graphql.Object, numberOfDataTypes)
 
 			for index, dataType := range property.AtDataType {
-				thingOrActionType, ok := (*getActionsAndThings)[dataType]
+				thingOrActionType, ok := (*networkGetActionsAndThings)[dataType]
 
 				if !ok {
 					return nil, fmt.Errorf("no such thing/action class '%s'", property.AtDataType[index])
@@ -106,8 +106,8 @@ func genSingleActionClassPropertyFields(class *models.SemanticSchemaClass, getAc
 				dataTypeClasses[index] = thingOrActionType
 			}
 
-			dataTypeUnionConf := graphql.UnionConfig{
-				Name:  fmt.Sprintf("%s%s%s", class.Class, capitalizedPropertyName, "Obj"),
+			dataTypeUnionConf := graphql.UnionConfig{ // TODO the first element is a placeholder to allow for simultaneous network and regular queries
+				Name:  fmt.Sprintf("%s%s%s%s", "Network", class.Class, capitalizedPropertyName, "Obj"),
 				Types: dataTypeClasses,
 				ResolveType: func(p graphql.ResolveTypeParams) *graphql.Object {
 					return nil
@@ -117,7 +117,7 @@ func genSingleActionClassPropertyFields(class *models.SemanticSchemaClass, getAc
 
 			multipleClassDataTypesUnion := graphql.NewUnion(dataTypeUnionConf)
 
-			singleActionClassPropertyFields[capitalizedPropertyName] = &graphql.Field{
+			singleNetworkActionClassPropertyFields[capitalizedPropertyName] = &graphql.Field{
 				Type:        multipleClassDataTypesUnion,
 				Description: property.Description,
 				Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -126,17 +126,17 @@ func genSingleActionClassPropertyFields(class *models.SemanticSchemaClass, getAc
 				},
 			}
 		} else {
-			convertedDataType, err := handleGetNonObjectDataTypes(*propertyType, property)
+			convertedDataType, err := handleNetworkGetNonObjectDataTypes(*propertyType, property)
 
 			if err != nil {
 				return nil, err
 			}
 
-			singleActionClassPropertyFields[property.Name] = convertedDataType
+			singleNetworkActionClassPropertyFields[property.Name] = convertedDataType
 		}
 	}
 
-	singleActionClassPropertyFields["uuid"] = &graphql.Field{
+	singleNetworkActionClassPropertyFields["uuid"] = &graphql.Field{
 		Description: "UUID of the thing or action given by the local Weaviate instance",
 		Type:        graphql.String,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -145,34 +145,34 @@ func genSingleActionClassPropertyFields(class *models.SemanticSchemaClass, getAc
 		},
 	}
 
-	return singleActionClassPropertyFields, nil
+	return singleNetworkActionClassPropertyFields, nil
 }
 
 // Build the dynamically generated Get Things part of the schema
-func genThingClassFieldsFromSchema(g *GraphQL, getActionsAndThings *map[string]*graphql.Object) (*graphql.Object, error) {
+func genNetworkThingClassFieldsFromSchema(g *GraphQL, getNetworkActionsAndThings *map[string]*graphql.Object, weaviate string) (*graphql.Object, error) {
 	thingClassFields := graphql.Fields{}
 
 	for _, class := range g.databaseSchema.ThingSchema.Schema.Classes {
-		singleThingClassField, singleThingClassObject := genSingleThingClassField(class, getActionsAndThings)
+		singleThingClassField, singleThingClassObject := genSingleNetworkThingClassField(class, getNetworkActionsAndThings)
 		thingClassFields[class.Class] = singleThingClassField
 		// this line assigns the created class to a Hashmap which is used in thunks to handle cyclical relationships (Classes with other Classes as properties)
-		(*getActionsAndThings)[class.Class] = singleThingClassObject
+		(*getNetworkActionsAndThings)[class.Class] = singleThingClassObject
 	}
 
-	localGetThings := graphql.ObjectConfig{
-		Name:        "WeaviateLocalGetThingsObj",
+	networkGetThings := graphql.ObjectConfig{
+		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGet", weaviate, "ThingsObj"),
 		Fields:      thingClassFields,
 		Description: "Type of Things i.e. Things classes to Get on the Local Weaviate",
 	}
 
-	return graphql.NewObject(localGetThings), nil
+	return graphql.NewObject(networkGetThings), nil
 }
 
-func genSingleThingClassField(class *models.SemanticSchemaClass, getActionsAndThings *map[string]*graphql.Object) (*graphql.Field, *graphql.Object) {
+func genSingleNetworkThingClassField(class *models.SemanticSchemaClass, getActionsAndThings *map[string]*graphql.Object) (*graphql.Field, *graphql.Object) {
 	singleThingClassPropertyFieldsObj := graphql.ObjectConfig{
-		Name: class.Class,
+		Name: fmt.Sprintf("%s%s", "Network", class.Class), //class.Class, // TODO the commented version is the original one
 		Fields: (graphql.FieldsThunk)(func() graphql.Fields {
-			singleThingClassPropertyFields, err := genSingleThingClassPropertyFields(class, getActionsAndThings)
+			singleThingClassPropertyFields, err := genSingleNetworkThingClassPropertyFields(class, getActionsAndThings)
 			if err != nil {
 				panic(fmt.Errorf("failed to assemble single Thing Class field for Class %s", class.Class))
 			}
@@ -203,7 +203,7 @@ func genSingleThingClassField(class *models.SemanticSchemaClass, getActionsAndTh
 	return thingClassPropertyFieldsField, thingClassPropertyFieldsObject
 }
 
-func genSingleThingClassPropertyFields(class *models.SemanticSchemaClass, getActionsAndThings *map[string]*graphql.Object) (graphql.Fields, error) {
+func genSingleNetworkThingClassPropertyFields(class *models.SemanticSchemaClass, getNetworkActionsAndThings *map[string]*graphql.Object) (graphql.Fields, error) {
 	singleThingClassPropertyFields := graphql.Fields{}
 
 	for _, property := range class.Properties {
@@ -220,7 +220,7 @@ func genSingleThingClassPropertyFields(class *models.SemanticSchemaClass, getAct
 			dataTypeClasses := make([]*graphql.Object, numberOfDataTypes)
 
 			for index, dataType := range property.AtDataType {
-				thingOrActionType, ok := (*getActionsAndThings)[dataType]
+				thingOrActionType, ok := (*getNetworkActionsAndThings)[dataType]
 
 				if !ok {
 					return nil, fmt.Errorf("no such thing/action class '%s'", property.AtDataType[index])
@@ -229,8 +229,8 @@ func genSingleThingClassPropertyFields(class *models.SemanticSchemaClass, getAct
 				dataTypeClasses[index] = thingOrActionType
 			}
 
-			dataTypeUnionConf := graphql.UnionConfig{
-				Name:  fmt.Sprintf("%s%s%s", class.Class, capitalizedPropertyName, "Obj"),
+			dataTypeUnionConf := graphql.UnionConfig{ // TODO the first element is a placeholder to allow for simultaneous network and regular queries
+				Name:  fmt.Sprintf("%s%s%s%s", "Network", class.Class, capitalizedPropertyName, "Obj"),
 				Types: dataTypeClasses,
 				ResolveType: func(p graphql.ResolveTypeParams) *graphql.Object {
 					return nil
@@ -271,7 +271,7 @@ func genSingleThingClassPropertyFields(class *models.SemanticSchemaClass, getAct
 	return singleThingClassPropertyFields, nil
 }
 
-func handleGetNonObjectDataTypes(dataType schema.DataType, property *models.SemanticSchemaClassProperty) (*graphql.Field, error) {
+func handleNetworkGetNonObjectDataTypes(dataType schema.DataType, property *models.SemanticSchemaClassProperty) (*graphql.Field, error) {
 	switch dataType {
 
 	case schema.DataTypeString:

@@ -67,6 +67,25 @@ func (g *GraphQL) buildGraphqlSchema() error {
 }
 
 func assembleFullSchema(g *GraphQL) (graphql.Fields, error) {
+	localField, localErr := assembleLocalSchema(g)
+	if localErr != nil {
+		return nil, localErr
+	}
+
+	networkField, networkErr := assembleNetworkSchema(g)
+	if networkErr != nil {
+		return nil, networkErr
+	}
+
+	rootFields := graphql.Fields{
+		"Local":   localField,
+		"Network": networkField,
+	}
+
+	return rootFields, nil
+}
+
+func assembleLocalSchema(g *GraphQL) (*graphql.Field, error) {
 	// This map is used to store all the Thing and Action Objects, so that we can use them in references.
 	getActionsAndThings := make(map[string]*graphql.Object)
 	// this map is used to store all the Filter InputObjects, so that we can use them in references.
@@ -113,135 +132,70 @@ func assembleFullSchema(g *GraphQL) (graphql.Fields, error) {
 		},
 	}
 
-	rootFields := graphql.Fields{
-		"Local":   localField,
-		"Network": nil,
-	}
-
-	return rootFields, nil
+	// TODO remove this line! added to test network implementation
+	//localField = nil
+	return localField, nil
 }
 
-// generate the static parts of the schema
-func genThingsAndActionsFieldsForWeaviateLocalGetObj(localGetActions *graphql.Object, localGetThings *graphql.Object) *graphql.Object {
-	getThingsAndActionFields := graphql.Fields{
+func assembleNetworkSchema(g *GraphQL) (*graphql.Field, error) {
+	// TODO: placeholder loop, remove this once p2p functionality is up
+	weaviateInstances := []string{"WeaviateB"}
+	weaviateNetworkGetResults := make(map[string]*graphql.Object)
+	weaviateNetworkGetMetaResults := make(map[string]*graphql.Object)
 
-		"Actions": &graphql.Field{
-			Name:        "WeaviateLocalGetActions",
-			Description: "Get Actions on the Local Weaviate",
-			Type:        localGetActions,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				result, err := dbConnector.GetGraph(p)
-				return result, err
-			},
-		},
+	// this map is used to store all the Filter InputObjects, so that we can use them in references.
+	networkFilterOptions := make(map[string]*graphql.InputObject)
 
-		"Things": &graphql.Field{
-			Name:        "WeaviateLocalGetThings",
-			Description: "Get Things on the Local Weaviate",
-			Type:        localGetThings,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				result, err := dbConnector.GetGraph(p)
-				return result, err
-			},
-		},
+	for _, weaviate := range weaviateInstances {
+
+		// This map is used to store all the Thing and Action Objects, so that we can use them in references.
+		getNetworkActionsAndThings := make(map[string]*graphql.Object)
+
+		networkGetActions, err := genNetworkActionClassFieldsFromSchema(g, &getNetworkActionsAndThings, weaviate)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate action fields from schema for network Get because: %v", err)
+		}
+
+		networkGetThings, err := genNetworkThingClassFieldsFromSchema(g, &getNetworkActionsAndThings, weaviate)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate thing fields from schema for network Get because: %v", err)
+		}
+
+		classParentTypeIsAction := true
+		networkGetMetaActions, err := genNetworkMetaClassFieldsFromSchema(g.databaseSchema.ActionSchema.Schema.Classes, classParentTypeIsAction, weaviate)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate action fields from schema for network MetaGet because: %v", err)
+		}
+
+		classParentTypeIsAction = false
+		networkGetMetaThings, err := genNetworkMetaClassFieldsFromSchema(g.databaseSchema.ThingSchema.Schema.Classes, classParentTypeIsAction, weaviate)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to generate thing fields from schema for network MetaGet because: %v", err)
+		}
+
+		networkGetObject := genThingsAndActionsFieldsForWeaviateNetworkGetObj(networkGetActions, networkGetThings, weaviate)
+		networkGetMetaObject := genThingsAndActionsFieldsForWeaviateNetworkGetMetaObj(networkGetMetaActions, networkGetMetaThings, weaviate)
+		weaviateNetworkGetResults[weaviate] = networkGetObject
+		weaviateNetworkGetMetaResults[weaviate] = networkGetMetaObject
+
 	}
+	// TODO this is a temp function, do not use this in production! Inserts a temp weaviate obj in between Get and Things/Actions
+	networkGetObject, networkGetMetaObject := insertDummyNetworkWeaviateField(weaviateNetworkGetResults, weaviateNetworkGetMetaResults)
 
-	getThingsAndActionFieldsObject := graphql.ObjectConfig{
-		Name:        "WeaviateLocalGetObj",
-		Fields:      getThingsAndActionFields,
-		Description: "Type of Get function to get Things or Actions on the Local Weaviate",
-	}
+	networkGetAndGetMetaObject := genNetworkGetAndGetMetaFields(networkGetObject, networkGetMetaObject, networkFilterOptions)
 
-	return graphql.NewObject(getThingsAndActionFieldsObject)
-}
-
-func genThingsAndActionsFieldsForWeaviateLocalGetMetaObj(localGetMetaActions *graphql.Object, localGetMetaThings *graphql.Object) *graphql.Object {
-	getMetaThingsAndActionFields := graphql.Fields{
-
-		"Actions": &graphql.Field{
-			Name:        "WeaviateLocalGetMetaActions",
-			Description: "Get Meta information about Actions on the Local Weaviate",
-			Type:        localGetMetaActions,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				result, err := dbConnector.GetGraph(p)
-				return result, err
-			},
-		},
-
-		"Things": &graphql.Field{
-			Name:        "WeaviateLocalGetMetaThings",
-			Description: "Get Meta information about Things on the Local Weaviate",
-			Type:        localGetMetaThings,
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				result, err := dbConnector.GetGraph(p)
-				return result, err
-			},
-		},
-	}
-
-	getMetaThingsAndActionFieldsObject := graphql.ObjectConfig{
-		Name:        "WeaviateLocalGetMetaObj",
-		Fields:      getMetaThingsAndActionFields,
-		Description: "Type of Get function to get meta information about Things or Actions on the Local Weaviate",
-	}
-
-	return graphql.NewObject(getMetaThingsAndActionFieldsObject)
-}
-
-func genGetAndGetMetaFields(localGetObject *graphql.Object, localGetMetaObject *graphql.Object, filterOptions map[string]*graphql.InputObject) *graphql.Object {
-	filterFields := genFilterFields(filterOptions)
-	getAndGetMetaFields := graphql.Fields{
-
-		"Get": &graphql.Field{
-			Name:        "WeaviateLocalGet",
-			Type:        localGetObject,
-			Description: "Get Things or Actions on the local weaviate",
-			Args: graphql.FieldConfigArgument{
-				"where": &graphql.ArgumentConfig{
-					Description: "Filter options for the Get search, to convert the data to the filter input",
-					Type: graphql.NewInputObject(
-						graphql.InputObjectConfig{
-							Name:        "WeaviateLocalGetWhereInpObj",
-							Fields:      filterFields,
-							Description: "Filter options for the Get search, to convert the data to the filter input",
-						},
-					),
-				},
-			},
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				result, err := dbConnector.GetGraph(p)
-				return result, err
-			},
-		},
-
-		"GetMeta": &graphql.Field{
-			Name:        "WeaviateLocalGetMeta",
-			Type:        localGetMetaObject,
-			Description: "Query to Get Meta information about the data in the local Weaviate instance",
-			Args: graphql.FieldConfigArgument{
-				"where": &graphql.ArgumentConfig{
-					Description: "Filter options for the GetMeta search, to convert the data to the filter input",
-					Type: graphql.NewInputObject(
-						graphql.InputObjectConfig{
-							Name:        "WeaviateLocalGetMetaWhereInpObj",
-							Fields:      filterFields,
-							Description: "Filter options for the GetMeta search, to convert the data to the filter input",
-						},
-					),
-				},
-			},
-			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
-				result, err := dbConnector.GetGraph(p)
-				return result, err
-			},
+	networkField := &graphql.Field{
+		Type:        networkGetAndGetMetaObject,
+		Description: "Query a network Weaviate instance",
+		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+			result, err := dbConnector.GetGraph(p)
+			return result, err
 		},
 	}
 
-	weaviateLocalObject := &graphql.ObjectConfig{
-		Name:        "WeaviateLocalObj",
-		Fields:      getAndGetMetaFields,
-		Description: "Type of query on the local Weaviate",
-	}
-
-	return graphql.NewObject(*weaviateLocalObject)
+	return networkField, nil
 }
