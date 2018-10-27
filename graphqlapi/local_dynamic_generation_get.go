@@ -18,8 +18,6 @@ import (
 	"fmt"
 	"strings"
 
-	//dbconnector "github.com/creativesoftwarefdn/weaviate/connectors"
-	//"github.com/creativesoftwarefdn/weaviate/graphqlapi"
 	"github.com/creativesoftwarefdn/weaviate/models"
 	"github.com/creativesoftwarefdn/weaviate/schema"
 	"github.com/graphql-go/graphql"

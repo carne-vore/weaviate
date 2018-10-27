@@ -15,15 +15,16 @@
 package graphqlapi
 
 import (
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
 	"github.com/graphql-go/graphql"
 )
 
-func genNetworkFilterFields(networkFilterOptions map[string]*graphql.InputObject) graphql.InputObjectConfigFieldMap {
-	staticFilterElements := genNetworkStaticWhereFilterElements()
+func genNetworkFilterFields(filterContainer *utils.FilterContainer) graphql.InputObjectConfigFieldMap {
+	staticFilterElements := genNetworkStaticWhereFilterElements(filterContainer)
 
 	filterFields := graphql.InputObjectConfigFieldMap{
 		"operands": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewList(genNetworkOperandsObject(networkFilterOptions, staticFilterElements)),
+			Type:        graphql.NewList(genNetworkOperandsObject(filterContainer, staticFilterElements)),
 			Description: "Operands in the 'where' filter field, is a list of objects",
 		},
 	}
@@ -36,10 +37,10 @@ func genNetworkFilterFields(networkFilterOptions map[string]*graphql.InputObject
 }
 
 // generate these elements once
-func genNetworkStaticWhereFilterElements() graphql.InputObjectConfigFieldMap {
+func genNetworkStaticWhereFilterElements(filterContainer *utils.FilterContainer) graphql.InputObjectConfigFieldMap {
 	staticFilterElements := graphql.InputObjectConfigFieldMap{
 		"operator": &graphql.InputObjectFieldConfig{
-			Type:        genNetworkOperatorObject(),
+			Type:        filterContainer.WhereOperatorEnum,
 			Description: "Operator in the 'where' filter field, value is one of the 'WhereOperatorEnum' object",
 		},
 		"path": &graphql.InputObjectFieldConfig{
@@ -67,53 +68,154 @@ func genNetworkStaticWhereFilterElements() graphql.InputObjectConfigFieldMap {
 	return staticFilterElements
 }
 
-func genNetworkOperatorObject() *graphql.Enum {
-	enumFilterOptionsMap := graphql.EnumValueConfigMap{
-		"And":              &graphql.EnumValueConfig{},
-		"Or":               &graphql.EnumValueConfig{},
-		"Equal":            &graphql.EnumValueConfig{},
-		"Not":              &graphql.EnumValueConfig{},
-		"NotEqual":         &graphql.EnumValueConfig{},
-		"GreaterThan":      &graphql.EnumValueConfig{},
-		"GreaterThanEqual": &graphql.EnumValueConfig{},
-		"LessThan":         &graphql.EnumValueConfig{},
-		"LessThanEqual":    &graphql.EnumValueConfig{},
-	}
-
-	enumFilterOptionsConf := graphql.EnumConfig{
-		Name:        "NetworkWhereOperatorEnum",
-		Values:      enumFilterOptionsMap,
-		Description: "Enumeration object for the 'where' filter",
-	}
-
-	return graphql.NewEnum(enumFilterOptionsConf)
-}
-
 // use a thunk to avoid a cyclical relationship (filters refer to filters refer to .... ad infinitum)
-func genNetworkOperandsObject(networkFilterOptions map[string]*graphql.InputObject, staticFilterElements graphql.InputObjectConfigFieldMap) *graphql.InputObject {
+func genNetworkOperandsObject(filterContainer *utils.FilterContainer, staticFilterElements graphql.InputObjectConfigFieldMap) *graphql.InputObject {
 	outputObject := graphql.NewInputObject(
 		graphql.InputObjectConfig{
 			Name: "NetworkWhereOperandsInpObj",
 			Fields: (graphql.InputObjectConfigFieldMapThunk)(func() graphql.InputObjectConfigFieldMap {
-				filterFields := genNetworkOperandsObjectFields(networkFilterOptions, staticFilterElements)
+				filterFields := genNetworkOperandsObjectFields(filterContainer, staticFilterElements)
 				return filterFields
 			}),
 			Description: "Operands in the 'where' filter field, is a list of objects",
 		},
 	)
 
-	networkFilterOptions["operands"] = outputObject
+	filterContainer.NetworkFilterOptions["operands"] = outputObject
 
 	return outputObject
 }
 
-func genNetworkOperandsObjectFields(networkFilterOptions map[string]*graphql.InputObject, staticFilterElements graphql.InputObjectConfigFieldMap) graphql.InputObjectConfigFieldMap {
+func genNetworkOperandsObjectFields(filterContainer *utils.FilterContainer, staticFilterElements graphql.InputObjectConfigFieldMap) graphql.InputObjectConfigFieldMap {
 	outputFieldConfigMap := staticFilterElements
 
 	outputFieldConfigMap["operands"] = &graphql.InputObjectFieldConfig{
-		Type:        graphql.NewList(networkFilterOptions["operands"]),
+		Type:        graphql.NewList(filterContainer.NetworkFilterOptions["operands"]),
 		Description: "Operands in the 'where' filter field, is a list of objects",
 	}
 
 	return outputFieldConfigMap
+}
+
+func genNetworkFetchThingsAndActionsFilterFields(filterContainer *utils.FilterContainer) graphql.InputObjectConfigFieldMap {
+	networkFetchWhereInpObjPropertiesObj := genNetworkFetchWhereInpObjPropertiesObj(filterContainer)
+	networkFetchWhereInpObjClassInpObj := genNetworkFetchWhereInpObjClassInpObj()
+
+	networkFetchThingsAndActionsFilterFields := graphql.InputObjectConfigFieldMap{
+		"class": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewList(networkFetchWhereInpObjClassInpObj),
+			Description: "", // TODO no description in prototype
+		},
+		"properties": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewList(networkFetchWhereInpObjPropertiesObj),
+			Description: "", // TODO no description in prototype
+		},
+		"first": &graphql.InputObjectFieldConfig{
+			Type:        graphql.Int,
+			Description: "", // TODO no description in prototype
+		},
+	}
+
+	return networkFetchThingsAndActionsFilterFields
+}
+
+func genNetworkFetchWhereInpObjPropertiesObj(filterContainer *utils.FilterContainer) *graphql.InputObject {
+	filterPropertiesElements := genNetworkStaticWhereFilterElements(filterContainer)
+	// delete "path" key/value set
+	delete(filterPropertiesElements, "path")
+
+	filterPropertiesElements["certainty"] = &graphql.InputObjectFieldConfig{
+		Type:        graphql.Float,
+		Description: "", // TODO this has no description in the prototype
+	}
+	filterPropertiesElements["name"] = &graphql.InputObjectFieldConfig{
+		Type:        graphql.String,
+		Description: "", // TODO this has no description in the prototype
+	}
+	filterPropertiesElements["keywords"] = &graphql.InputObjectFieldConfig{
+		Type:        graphql.NewList(genNetworkFetchWherePropertyWhereKeywordsInpObj()),
+		Description: "", // TODO this has no description in the prototype
+	}
+
+	networkFetchWhereInpObjPropertiesObj := graphql.NewInputObject(
+		graphql.InputObjectConfig{
+			Name:        "NetworkFetchWhereInpObjProperties",
+			Fields:      filterPropertiesElements,
+			Description: "", // TODO no description in prototype
+		},
+	)
+
+	return networkFetchWhereInpObjPropertiesObj
+}
+
+func genNetworkFetchWherePropertyWhereKeywordsInpObj() *graphql.InputObject {
+	outputObject := graphql.NewInputObject(
+		graphql.InputObjectConfig{
+			Name: "NetworkFetchWherePropertyWhereKeywordsInpObj",
+			Fields: graphql.InputObjectConfigFieldMap{
+				"value": &graphql.InputObjectFieldConfig{
+					Type:        graphql.String,
+					Description: "", // TODO this has no description in the prototype
+				},
+				"weight": &graphql.InputObjectFieldConfig{
+					Type:        graphql.Float,
+					Description: "", // TODO this has no description in the prototype
+				},
+			},
+			Description: "", // TODO this has no description in the prototype
+		},
+	)
+	return outputObject
+}
+
+func genNetworkFetchWhereInpObjClassInpObj() *graphql.InputObject {
+	classInpObjKeywordsElement := genNetworkFetchWhereInpObjClassInpObjKeywordsElement()
+
+	filterClassElements := graphql.InputObjectConfigFieldMap{
+		"name": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: "", // TODO: no description in prototype
+		},
+		"certainty": &graphql.InputObjectFieldConfig{
+			Type:        graphql.Float,
+			Description: "", // TODO: no description in prototype
+		},
+		"keywords": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewList(classInpObjKeywordsElement),
+			Description: "", // TODO: no description in prototype
+		},
+		"first": &graphql.InputObjectFieldConfig{
+			Type:        graphql.Int,
+			Description: "", // TODO: no description in prototype
+		},
+	}
+
+	networkFetchWhereInpObjClassInpObj := graphql.NewInputObject(
+		graphql.InputObjectConfig{
+			Name:        "NetworkFetchWhereInpObjClassInpObj",
+			Fields:      filterClassElements,
+			Description: "", // TODO no description in prototype
+		},
+	)
+	return networkFetchWhereInpObjClassInpObj
+}
+
+func genNetworkFetchWhereInpObjClassInpObjKeywordsElement() *graphql.InputObject {
+	outputObject := graphql.NewInputObject(
+		graphql.InputObjectConfig{
+			Name: "WeaviateNetworkWhereNameKeywordsInpObj",
+			Fields: graphql.InputObjectConfigFieldMap{
+				"value": &graphql.InputObjectFieldConfig{
+					Type:        graphql.String,
+					Description: "", // TODO this has no description in the prototype
+				},
+				"weight": &graphql.InputObjectFieldConfig{
+					Type:        graphql.Float,
+					Description: "", // TODO this has no description in the prototype
+				},
+			},
+			Description: "", // TODO this has no description in the prototype
+		},
+	)
+	return outputObject
 }

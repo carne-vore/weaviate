@@ -16,6 +16,7 @@ package graphqlapi
 
 import (
 	"fmt"
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
 	"github.com/graphql-go/graphql"
 )
 
@@ -66,7 +67,7 @@ func genThingsAndActionsFieldsForWeaviateNetworkGetObj(networkGetActions *graphq
 
 		"Actions": &graphql.Field{
 			Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGet", weaviate, "Actions"),
-			Description: "Get Actions on the Local Weaviate",
+			Description: "Get Actions from the Network",
 			Type:        networkGetActions,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
@@ -76,7 +77,7 @@ func genThingsAndActionsFieldsForWeaviateNetworkGetObj(networkGetActions *graphq
 
 		"Things": &graphql.Field{
 			Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGet", weaviate, "Things"),
-			Description: "Get Things on the Local Weaviate",
+			Description: "Get Things from the Network",
 			Type:        networkGetThings,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
@@ -86,11 +87,10 @@ func genThingsAndActionsFieldsForWeaviateNetworkGetObj(networkGetActions *graphq
 	}
 
 	getNetworkThingsAndActionFieldsObject := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGet", weaviate, "Obj"), // TODO: "WeaviateNetworkGetObj",
+		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGet", weaviate, "Obj"),
 		Fields:      getThingsAndActionFields,
-		Description: "Type of Get function to get Things or Actions on the Local Weaviate",
+		Description: "Objects for the what to Get from the weaviate weaviateB in the network.", // TODO: edit this string. Possibly make weaviate reference dynamic?
 	}
-
 	return graphql.NewObject(getNetworkThingsAndActionFieldsObject)
 }
 
@@ -99,7 +99,7 @@ func genThingsAndActionsFieldsForWeaviateNetworkGetMetaObj(networkGetMetaActions
 
 		"Actions": &graphql.Field{
 			Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGetMeta", weaviate, "Actions"),
-			Description: "Get Meta information about Actions on the Local Weaviate",
+			Description: "Get Meta information about Actions from the Network",
 			Type:        networkGetMetaActions,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
@@ -109,7 +109,7 @@ func genThingsAndActionsFieldsForWeaviateNetworkGetMetaObj(networkGetMetaActions
 
 		"Things": &graphql.Field{
 			Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGetMeta", weaviate, "Things"),
-			Description: "Get Meta information about Things on the Local Weaviate",
+			Description: "Get Meta information about Things from the Network",
 			Type:        networkGetMetaThings,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
@@ -119,21 +119,199 @@ func genThingsAndActionsFieldsForWeaviateNetworkGetMetaObj(networkGetMetaActions
 	}
 
 	getNetworkMetaThingsAndActionFieldsObject := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGetMeta", weaviate, "Obj"), // TODO: fix this one p2p functionality is up
+		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGetMeta", weaviate, "Obj"),
 		Fields:      getNetworkMetaThingsAndActionFields,
-		Description: "Type of Get function to get meta information about Things or Actions on the Local Weaviate",
+		Description: "Type of Get function to get meta information about Things or Actions from the Network",
 	}
 
 	return graphql.NewObject(getNetworkMetaThingsAndActionFieldsObject)
 }
 
-func genNetworkGetAndGetMetaFields(networkGetObject *graphql.Object, networkGetMetaObject *graphql.Object, networkFilterOptions map[string]*graphql.InputObject) *graphql.Object {
-	filterFields := genNetworkFilterFields(networkFilterOptions)
+func genFieldsObjForNetworkFetch(filterContainer *utils.FilterContainer) *graphql.Object {
+	networkFetchActionsFields := genNetworkFetchActionsFieldsObj()
+	networkFetchThingsFields := genNetworkFetchThingsFieldsObj()
+	networkFetchFuzzyFields := genNetworkFetchFuzzyFieldsObj()
+	networkFetchWhereFilterFields := genNetworkFetchThingsActionsWhereFilterFields(filterContainer)
+
+	networkFetchFields := graphql.Fields{
+
+		"Actions": &graphql.Field{
+			Name:        "WeaviateNetworkFetchActions",
+			Description: "Actions to fetch on the network",
+			Type:        graphql.NewList(networkFetchActionsFields),
+			Args: graphql.FieldConfigArgument{
+				"where": networkFetchWhereFilterFields,
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+
+		"Things": &graphql.Field{
+			Name:        "WeaviateNetworkFetchThings",
+			Description: "Things to fetch on the network",
+			Type:        graphql.NewList(networkFetchThingsFields),
+			Args: graphql.FieldConfigArgument{
+				"where": networkFetchWhereFilterFields,
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+
+		"Fuzzy": &graphql.Field{
+			Name:        "WeaviateNetworkFetchFuzzy",
+			Description: "To do a fuzzy fetch, with only a ontology value, on the Network",
+			Type:        graphql.NewList(networkFetchFuzzyFields),
+			Args: graphql.FieldConfigArgument{
+				"value": &graphql.ArgumentConfig{
+					Description: "The ontology value to fetch Things or Actions on the Network on",
+					Type:        graphql.NewNonNull(graphql.String),
+				},
+				"certainty": &graphql.ArgumentConfig{
+					Description: "The minimum certainty the nodes should match the given ontology value",
+					Type:        graphql.NewNonNull(graphql.Float),
+				},
+			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+	}
+
+	networkFetchFieldsObj := graphql.ObjectConfig{
+		Name:        "WeaviateNetworkFetchObj",
+		Fields:      networkFetchFields,
+		Description: "Type of network fetch: e.g. Things, Actions",
+	}
+
+	return graphql.NewObject(networkFetchFieldsObj)
+}
+
+func genNetworkFetchActionsFieldsObj() *graphql.Object {
+	getNetworkFetchActionsFields := graphql.Fields{
+
+		"beacon": &graphql.Field{
+			Name:        "WeaviateNetworkFetchActionsBeacon",
+			Description: "The beacon of the node that is a result from the fuzzy network fetch",
+			Type:        graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+
+		"certainty": &graphql.Field{
+			Name:        "WeaviateNetworkFetchActionsCertainty",
+			Description: "Certainty of beacon result found in the Network has expected ontology characterisics",
+			Type:        graphql.Float,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+	}
+
+	getNetworkFetchActionsFieldsObject := graphql.ObjectConfig{
+		Name:        "WeaviateNetworkFetchActionsObj",
+		Fields:      getNetworkFetchActionsFields,
+		Description: "Type of Actions i.e. classes to fetch on the network",
+	}
+
+	return graphql.NewObject(getNetworkFetchActionsFieldsObject)
+}
+
+func genNetworkFetchThingsFieldsObj() *graphql.Object {
+	getNetworkFetchThingsFields := graphql.Fields{
+
+		"beacon": &graphql.Field{
+			Name:        "WeaviateNetworkFetchThingsBeacon",
+			Description: "The beacon of the node that is a result from the fuzzy network fetch",
+			Type:        graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+
+		"certainty": &graphql.Field{
+			Name:        "WeaviateNetworkFetchThingsCertainty",
+			Description: "Certainty of beacon result found in the Network has expected ontology characterisics", // TODO typo in original string
+			Type:        graphql.Float,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+	}
+
+	getNetworkFetchThingsFieldsObject := graphql.ObjectConfig{
+		Name:        "WeaviateNetworkFetchThingsObj",
+		Fields:      getNetworkFetchThingsFields,
+		Description: "Type of Things i.e. classes to fetch on the network",
+	}
+
+	return graphql.NewObject(getNetworkFetchThingsFieldsObject)
+}
+
+func genNetworkFetchFuzzyFieldsObj() *graphql.Object {
+	getNetworkFetchFuzzyFields := graphql.Fields{
+
+		"beacon": &graphql.Field{
+			Name:        "WeaviateNetworkFetchFuzzyBeacon",
+			Description: "The beacon of the node that is a result from the fuzzy network fetch",
+			Type:        graphql.String,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+
+		"certainty": &graphql.Field{
+			Name:        "WeaviateNetworkFetchFuzzyCertainty",
+			Description: "Certainty of beacon result found in the Network has expected ontology characterisics", // TODO typo in original string
+			Type:        graphql.Float,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+	}
+
+	getNetworkFetchFuzzyFieldsObject := graphql.ObjectConfig{
+		Name:        "WeaviateNetworkFetchFuzzyObj",
+		Fields:      getNetworkFetchFuzzyFields,
+		Description: "The objects what to request from this network fuzzy fetch query",
+	}
+
+	return graphql.NewObject(getNetworkFetchFuzzyFieldsObject)
+}
+
+func genNetworkFetchThingsActionsWhereFilterFields(filterContainer *utils.FilterContainer) *graphql.ArgumentConfig {
+	whereFilterFields := &graphql.ArgumentConfig{
+		Description: "Filter options for the Network GetMeta search, to convert the data to the filter input",
+		Type: graphql.NewNonNull(graphql.NewInputObject(
+			graphql.InputObjectConfig{
+				Name:        "NetworkFetchWhereInpObj",
+				Fields:      genNetworkFetchThingsAndActionsFilterFields(filterContainer),
+				Description: "Filter options for the Network GetMeta search, to convert the data to the filter input",
+			},
+		)),
+	}
+
+	return whereFilterFields
+}
+
+func genNetworkFields(graphQLNetworkFieldContents *utils.GraphQLNetworkFieldContents, filterContainer *utils.FilterContainer) *graphql.Object {
+	getGetMetaFilterFields := genNetworkFilterFields(filterContainer)
 	networkGetAndGetMetaFields := graphql.Fields{
 
 		"Get": &graphql.Field{
 			Name:        "WeaviateNetworkGet",
-			Type:        networkGetObject,
+			Type:        graphQLNetworkFieldContents.NetworkGetObject,
 			Description: "Get Things or Actions on the local weaviate",
 			Args: graphql.FieldConfigArgument{
 				"where": &graphql.ArgumentConfig{
@@ -141,8 +319,8 @@ func genNetworkGetAndGetMetaFields(networkGetObject *graphql.Object, networkGetM
 					Type: graphql.NewInputObject(
 						graphql.InputObjectConfig{
 							Name:        "WeaviateNetworkGetWhereInpObj",
-							Fields:      filterFields,
-							Description: "Filter options for the Get search, to convert the data to the filter input",
+							Fields:      getGetMetaFilterFields,
+							Description: "Filter options for the Network Get search, to convert the data to the filter input",
 						},
 					),
 				},
@@ -155,20 +333,52 @@ func genNetworkGetAndGetMetaFields(networkGetObject *graphql.Object, networkGetM
 
 		"GetMeta": &graphql.Field{
 			Name:        "WeaviateNetworkGetMeta",
-			Type:        networkGetMetaObject,
-			Description: "Query to Get Meta information about the data in the local Weaviate instance",
+			Type:        graphQLNetworkFieldContents.NetworkGetMetaObject,
+			Description: "Query to Get Meta information about data on the Network",
 			Args: graphql.FieldConfigArgument{
 				"where": &graphql.ArgumentConfig{
-					Description: "Filter options for the GetMeta search, to convert the data to the filter input",
+					Description: "Filter options for the Network GetMeta search, to convert the data to the filter input",
 					Type: graphql.NewInputObject(
 						graphql.InputObjectConfig{
 							Name:        "WeaviateNetworkGetMetaWhereInpObj",
-							Fields:      filterFields,
-							Description: "Filter options for the GetMeta search, to convert the data to the filter input",
+							Fields:      getGetMetaFilterFields,
+							Description: "Filter options for the Network GetMeta search, to convert the data to the filter input",
 						},
 					),
 				},
 			},
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+
+		"Fetch": &graphql.Field{
+			Name:        "WeaviateNetworkFetch",
+			Type:        graphQLNetworkFieldContents.NetworkFetchObject,
+			Description: "Query to Get Meta information about data on the Network",
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+
+		"Introspection": &graphql.Field{
+			Name:        "WeaviateNetworkIntrospection",
+			Type:        graphql.String,
+			Description: "Query to Get Meta information about data on the Network",
+			//			Args: graphql.FieldConfigArgument{
+			//				"where": &graphql.ArgumentConfig{
+			//					Description: "Filter options for the Network GetMeta search, to convert the data to the filter input",
+			//					Type: graphql.NewInputObject(
+			//						graphql.InputObjectConfig{
+			//							Name:        "WeaviateNetworkGetMetaWhereInpObj",
+			//							Fields:      filterFields,
+			//							Description: "Filter options for the Network GetMeta search, to convert the data to the filter input",
+			//						},
+			//					),
+			//				},
+			//			},
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
 				return result, err
@@ -179,7 +389,7 @@ func genNetworkGetAndGetMetaFields(networkGetObject *graphql.Object, networkGetM
 	weaviateNetworkObject := &graphql.ObjectConfig{
 		Name:        "WeaviateNetworkObj",
 		Fields:      networkGetAndGetMetaFields,
-		Description: "Type of query on the local Weaviate",
+		Description: "Type of query on the Weaviate network",
 	}
 
 	return graphql.NewObject(*weaviateNetworkObject)

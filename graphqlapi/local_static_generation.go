@@ -15,6 +15,7 @@
 package graphqlapi
 
 import (
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
 	"github.com/graphql-go/graphql"
 )
 
@@ -85,8 +86,8 @@ func genThingsAndActionsFieldsForWeaviateLocalGetMetaObj(localGetMetaActions *gr
 	return graphql.NewObject(getMetaThingsAndActionFieldsObject)
 }
 
-func genGetAndGetMetaFields(localGetObject *graphql.Object, localGetMetaObject *graphql.Object, filterOptions map[string]*graphql.InputObject) *graphql.Object {
-	filterFields := genFilterFields(filterOptions)
+func genGetAndGetMetaFields(localGetObject *graphql.Object, localGetMetaObject *graphql.Object, filterContainer *utils.FilterContainer) *graphql.Object {
+	filterFields := genFilterFields(filterContainer)
 	getAndGetMetaFields := graphql.Fields{
 
 		"Get": &graphql.Field{

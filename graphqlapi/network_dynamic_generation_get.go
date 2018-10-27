@@ -50,7 +50,7 @@ func genSingleNetworkActionClassField(class *models.SemanticSchemaClass, network
 			singleActionClassPropertyFields, err := genSingleNetworkActionClassPropertyFields(class, networkGetActionsAndThings)
 
 			if err != nil {
-				panic("Failed to generate single Action Class property fields")
+				panic("Failed to generate single Network Action Class property fields")
 			}
 
 			return singleActionClassPropertyFields
@@ -137,7 +137,7 @@ func genSingleNetworkActionClassPropertyFields(class *models.SemanticSchemaClass
 	}
 
 	singleNetworkActionClassPropertyFields["uuid"] = &graphql.Field{
-		Description: "UUID of the thing or action given by the local Weaviate instance",
+		Description: "UUID of the thing or action given by the Weaviate network",
 		Type:        graphql.String,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			result, err := dbConnector.GetGraph(p)
@@ -162,7 +162,7 @@ func genNetworkThingClassFieldsFromSchema(g *GraphQL, getNetworkActionsAndThings
 	networkGetThings := graphql.ObjectConfig{
 		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGet", weaviate, "ThingsObj"),
 		Fields:      thingClassFields,
-		Description: "Type of Things i.e. Things classes to Get on the Local Weaviate",
+		Description: "Type of Things i.e. Things classes to Get from the Network",
 	}
 
 	return graphql.NewObject(networkGetThings), nil
@@ -174,7 +174,7 @@ func genSingleNetworkThingClassField(class *models.SemanticSchemaClass, getActio
 		Fields: (graphql.FieldsThunk)(func() graphql.Fields {
 			singleThingClassPropertyFields, err := genSingleNetworkThingClassPropertyFields(class, getActionsAndThings)
 			if err != nil {
-				panic(fmt.Errorf("failed to assemble single Thing Class field for Class %s", class.Class))
+				panic(fmt.Errorf("failed to assemble single Network Thing Class field for Class %s", class.Class))
 			}
 			return singleThingClassPropertyFields
 		}),
@@ -260,7 +260,7 @@ func genSingleNetworkThingClassPropertyFields(class *models.SemanticSchemaClass,
 	}
 
 	singleThingClassPropertyFields["uuid"] = &graphql.Field{
-		Description: "UUID of the thing or action given by the local Weaviate instance",
+		Description: "UUID of the thing or action given by the Weaviate network",
 		Type:        graphql.String,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			result, err := dbConnector.GetGraph(p)

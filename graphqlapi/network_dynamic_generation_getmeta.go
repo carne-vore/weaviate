@@ -26,10 +26,10 @@ import (
 func genNetworkMetaClassFieldsFromSchema(databaseSchema []*models.SemanticSchemaClass, classParentTypeIsAction bool, weaviate string) (*graphql.Object, error) {
 	classFields := graphql.Fields{}
 	name := fmt.Sprintf("%s%s%s", "WeaviateNetworkGetMeta", weaviate, "ThingsObj")
-	description := "Type of Things i.e. Things classes to GetMeta information of on the Local Weaviate"
+	description := "Type of Things i.e. Things classes to GetMeta information of on the network"
 	if classParentTypeIsAction {
 		name = "WeaviateNetworkGetMetaActionsObj"
-		description = "Type of Actions i.e. Actions classes to GetMeta information of on the Local Weaviate"
+		description = "Type of Actions i.e. Actions classes to GetMeta information of on the network"
 	}
 
 	for _, class := range databaseSchema {
@@ -60,7 +60,7 @@ func genSingleNetworkMetaClassField(class *models.SemanticSchemaClass, descripti
 			singleClassPropertyFields, err := genSingleNetworkMetaClassPropertyFields(class)
 
 			if err != nil {
-				panic("Failed to assemble single Meta Class field")
+				panic("Failed to assemble single Network Meta Class field")
 			}
 
 			return singleClassPropertyFields

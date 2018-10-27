@@ -15,15 +15,38 @@
 package graphqlapi
 
 import (
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
 	"github.com/graphql-go/graphql"
 )
 
-func genFilterFields(filterOptions map[string]*graphql.InputObject) graphql.InputObjectConfigFieldMap {
-	staticFilterElements := genStaticWhereFilterElements()
+func genOperatorObject() *graphql.Enum {
+	enumFilterOptionsMap := graphql.EnumValueConfigMap{
+		"And":              &graphql.EnumValueConfig{},
+		"Or":               &graphql.EnumValueConfig{},
+		"Equal":            &graphql.EnumValueConfig{},
+		"Not":              &graphql.EnumValueConfig{},
+		"NotEqual":         &graphql.EnumValueConfig{},
+		"GreaterThan":      &graphql.EnumValueConfig{},
+		"GreaterThanEqual": &graphql.EnumValueConfig{},
+		"LessThan":         &graphql.EnumValueConfig{},
+		"LessThanEqual":    &graphql.EnumValueConfig{},
+	}
+
+	enumFilterOptionsConf := graphql.EnumConfig{
+		Name:        "WhereOperatorEnum",
+		Values:      enumFilterOptionsMap,
+		Description: "Enumeration object for the 'where' filter",
+	}
+
+	return graphql.NewEnum(enumFilterOptionsConf)
+}
+
+func genFilterFields(filterContainer *utils.FilterContainer) graphql.InputObjectConfigFieldMap {
+	staticFilterElements := genStaticWhereFilterElements(filterContainer)
 
 	filterFields := graphql.InputObjectConfigFieldMap{
 		"operands": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewList(genOperandsObject(filterOptions, staticFilterElements)),
+			Type:        graphql.NewList(genOperandsObject(filterContainer, staticFilterElements)),
 			Description: "Operands in the 'where' filter field, is a list of objects",
 		},
 	}
@@ -36,10 +59,10 @@ func genFilterFields(filterOptions map[string]*graphql.InputObject) graphql.Inpu
 }
 
 // generate these elements once
-func genStaticWhereFilterElements() graphql.InputObjectConfigFieldMap {
+func genStaticWhereFilterElements(filterContainer *utils.FilterContainer) graphql.InputObjectConfigFieldMap {
 	staticFilterElements := graphql.InputObjectConfigFieldMap{
 		"operator": &graphql.InputObjectFieldConfig{
-			Type:        genOperatorObject(),
+			Type:        filterContainer.WhereOperatorEnum,
 			Description: "Operator in the 'where' filter field, value is one of the 'WhereOperatorEnum' object",
 		},
 		"path": &graphql.InputObjectFieldConfig{
@@ -67,51 +90,29 @@ func genStaticWhereFilterElements() graphql.InputObjectConfigFieldMap {
 	return staticFilterElements
 }
 
-func genOperatorObject() *graphql.Enum {
-	enumFilterOptionsMap := graphql.EnumValueConfigMap{
-		"And":              &graphql.EnumValueConfig{},
-		"Or":               &graphql.EnumValueConfig{},
-		"Equal":            &graphql.EnumValueConfig{},
-		"Not":              &graphql.EnumValueConfig{},
-		"NotEqual":         &graphql.EnumValueConfig{},
-		"GreaterThan":      &graphql.EnumValueConfig{},
-		"GreaterThanEqual": &graphql.EnumValueConfig{},
-		"LessThan":         &graphql.EnumValueConfig{},
-		"LessThanEqual":    &graphql.EnumValueConfig{},
-	}
-
-	enumFilterOptionsConf := graphql.EnumConfig{
-		Name:        "WhereOperatorEnum",
-		Values:      enumFilterOptionsMap,
-		Description: "Enumeration object for the 'where' filter",
-	}
-
-	return graphql.NewEnum(enumFilterOptionsConf)
-}
-
 // use a thunk to avoid a cyclical relationship (filters refer to filters refer to .... ad infinitum)
-func genOperandsObject(filterOptions map[string]*graphql.InputObject, staticFilterElements graphql.InputObjectConfigFieldMap) *graphql.InputObject {
+func genOperandsObject(filterContainer *utils.FilterContainer, staticFilterElements graphql.InputObjectConfigFieldMap) *graphql.InputObject {
 	outputObject := graphql.NewInputObject(
 		graphql.InputObjectConfig{
 			Name: "WhereOperandsInpObj",
 			Fields: (graphql.InputObjectConfigFieldMapThunk)(func() graphql.InputObjectConfigFieldMap {
-				filterFields := genOperandsObjectFields(filterOptions, staticFilterElements)
+				filterFields := genOperandsObjectFields(filterContainer, staticFilterElements)
 				return filterFields
 			}),
 			Description: "Operands in the 'where' filter field, is a list of objects",
 		},
 	)
 
-	filterOptions["operands"] = outputObject
+	filterContainer.LocalFilterOptions["operands"] = outputObject
 
 	return outputObject
 }
 
-func genOperandsObjectFields(filterOptions map[string]*graphql.InputObject, staticFilterElements graphql.InputObjectConfigFieldMap) graphql.InputObjectConfigFieldMap {
+func genOperandsObjectFields(filterContainer *utils.FilterContainer, staticFilterElements graphql.InputObjectConfigFieldMap) graphql.InputObjectConfigFieldMap {
 	outputFieldConfigMap := staticFilterElements
 
 	outputFieldConfigMap["operands"] = &graphql.InputObjectFieldConfig{
-		Type:        graphql.NewList(filterOptions["operands"]),
+		Type:        graphql.NewList(filterContainer.LocalFilterOptions["operands"]),
 		Description: "Operands in the 'where' filter field, is a list of objects",
 	}
 

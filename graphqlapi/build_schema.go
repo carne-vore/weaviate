@@ -18,6 +18,7 @@ import (
 	"fmt"
 
 	dbconnector "github.com/creativesoftwarefdn/weaviate/connectors"
+	gqlutils "github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
 	"github.com/graphql-go/graphql"
 )
 
@@ -67,12 +68,16 @@ func (g *GraphQL) buildGraphqlSchema() error {
 }
 
 func assembleFullSchema(g *GraphQL) (graphql.Fields, error) {
-	localField, localErr := assembleLocalSchema(g)
+	filters := gqlutils.FilterContainer{
+		WhereOperatorEnum: genOperatorObject(),
+	}
+
+	localField, localErr := assembleLocalSchema(g, &filters)
 	if localErr != nil {
 		return nil, localErr
 	}
 
-	networkField, networkErr := assembleNetworkSchema(g)
+	networkField, networkErr := assembleNetworkSchema(g, &filters)
 	if networkErr != nil {
 		return nil, networkErr
 	}
@@ -85,11 +90,11 @@ func assembleFullSchema(g *GraphQL) (graphql.Fields, error) {
 	return rootFields, nil
 }
 
-func assembleLocalSchema(g *GraphQL) (*graphql.Field, error) {
+func assembleLocalSchema(g *GraphQL, filterContainer *gqlutils.FilterContainer) (*graphql.Field, error) {
 	// This map is used to store all the Thing and Action Objects, so that we can use them in references.
 	getActionsAndThings := make(map[string]*graphql.Object)
 	// this map is used to store all the Filter InputObjects, so that we can use them in references.
-	filterOptions := make(map[string]*graphql.InputObject)
+	filterContainer.LocalFilterOptions = make(map[string]*graphql.InputObject)
 
 	localGetActions, err := genActionClassFieldsFromSchema(g, &getActionsAndThings)
 
@@ -121,7 +126,7 @@ func assembleLocalSchema(g *GraphQL) (*graphql.Field, error) {
 
 	localGetMetaObject := genThingsAndActionsFieldsForWeaviateLocalGetMetaObj(localGetMetaActions, localGetMetaThings)
 
-	localGetAndGetMetaObject := genGetAndGetMetaFields(localGetObject, localGetMetaObject, filterOptions)
+	localGetAndGetMetaObject := genGetAndGetMetaFields(localGetObject, localGetMetaObject, filterContainer)
 
 	localField := &graphql.Field{
 		Type:        localGetAndGetMetaObject,
@@ -132,19 +137,17 @@ func assembleLocalSchema(g *GraphQL) (*graphql.Field, error) {
 		},
 	}
 
-	// TODO remove this line! added to test network implementation
-	//localField = nil
 	return localField, nil
 }
 
-func assembleNetworkSchema(g *GraphQL) (*graphql.Field, error) {
+func assembleNetworkSchema(g *GraphQL, filterContainer *gqlutils.FilterContainer) (*graphql.Field, error) {
 	// TODO: placeholder loop, remove this once p2p functionality is up
 	weaviateInstances := []string{"WeaviateB"}
 	weaviateNetworkGetResults := make(map[string]*graphql.Object)
 	weaviateNetworkGetMetaResults := make(map[string]*graphql.Object)
 
 	// this map is used to store all the Filter InputObjects, so that we can use them in references.
-	networkFilterOptions := make(map[string]*graphql.InputObject)
+	filterContainer.NetworkFilterOptions = make(map[string]*graphql.InputObject)
 
 	for _, weaviate := range weaviateInstances {
 
@@ -183,10 +186,21 @@ func assembleNetworkSchema(g *GraphQL) (*graphql.Field, error) {
 		weaviateNetworkGetMetaResults[weaviate] = networkGetMetaObject
 
 	}
-	// TODO this is a temp function, do not use this in production! Inserts a temp weaviate obj in between Get and Things/Actions
+	// TODO this is a temp function, inserts a temp weaviate obj in between Get and Things/Actions
 	networkGetObject, networkGetMetaObject := insertDummyNetworkWeaviateField(weaviateNetworkGetResults, weaviateNetworkGetMetaResults)
 
-	networkGetAndGetMetaObject := genNetworkGetAndGetMetaFields(networkGetObject, networkGetMetaObject, networkFilterOptions)
+	networkFetchObj := genFieldsObjForNetworkFetch(filterContainer)
+
+	//networkFetchFilters := genNetworkFetchThingsAndActionsFilterFields()
+
+	graphQLNetworkFieldContents := gqlutils.GraphQLNetworkFieldContents{
+		networkGetObject,
+		networkGetMetaObject,
+		networkFetchObj,
+		//networkFetchFilters,
+	}
+
+	networkGetAndGetMetaObject := genNetworkFields(&graphQLNetworkFieldContents, filterContainer)
 
 	networkField := &graphql.Field{
 		Type:        networkGetAndGetMetaObject,
