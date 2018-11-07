@@ -27,7 +27,7 @@ func insertDummyNetworkWeaviateField(weaviatesWithGetFields map[string]*graphql.
 	metaGetWeaviates := graphql.Fields{}
 
 	for weaviate, weaviateFields := range weaviatesWithGetFields {
-		getWeaviates[weaviate] = &graphql.Field{ // TODO first char to lower case
+		getWeaviates[weaviate] = &graphql.Field{
 			Name:        weaviate,
 			Description: fmt.Sprintf("%s%s%s", "Object field for weaviate ", weaviate, " in the network."),
 			Type:        weaviateFields,
@@ -36,7 +36,7 @@ func insertDummyNetworkWeaviateField(weaviatesWithGetFields map[string]*graphql.
 				return result, err
 			},
 		}
-		metaGetWeaviates[weaviate] = &graphql.Field{ // TODO first char to lower case
+		metaGetWeaviates[weaviate] = &graphql.Field{
 			Name:        fmt.Sprintf("%s%s", "Meta", weaviate),
 			Description: fmt.Sprintf("%s%s%s", "Object field for weaviate ", weaviate, " in the network."),
 			Type:        weaviatesWithMetaGetFields[weaviate],
@@ -89,7 +89,7 @@ func genThingsAndActionsFieldsForWeaviateNetworkGetObj(networkGetActions *graphq
 	getNetworkThingsAndActionFieldsObject := graphql.ObjectConfig{
 		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGet", weaviate, "Obj"),
 		Fields:      getThingsAndActionFields,
-		Description: fmt.Sprintf("%s%s%s", "Objects for the what to Get from the weaviate ", weaviate, " in the network."), // TODO: edit this string. Possibly make weaviate reference dynamic?
+		Description: fmt.Sprintf("%s%s%s", "Objects for the what to Get from the weaviate ", weaviate, " in the network."),
 	}
 	return graphql.NewObject(getNetworkThingsAndActionFieldsObject)
 }
@@ -121,7 +121,7 @@ func genThingsAndActionsFieldsForWeaviateNetworkGetMetaObj(networkGetMetaActions
 	getNetworkMetaThingsAndActionFieldsObject := graphql.ObjectConfig{
 		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGetMeta", weaviate, "Obj"),
 		Fields:      getNetworkMetaThingsAndActionFields,
-		Description: fmt.Sprintf("%s%s%s", "Objects for the what to Get Meta from the weaviate ", weaviate, " in the network."), // TODO
+		Description: fmt.Sprintf("%s%s%s", "Objects for the what to Get Meta from the weaviate ", weaviate, " in the network."),
 	}
 
 	return graphql.NewObject(getNetworkMetaThingsAndActionFieldsObject)
@@ -239,7 +239,7 @@ func genNetworkFetchThingsFieldsObj() *graphql.Object {
 
 		"certainty": &graphql.Field{
 			Name:        "WeaviateNetworkFetchThingsCertainty",
-			Description: "Certainty of beacon result found in the Network has expected ontology characterisics", // TODO typo in original string
+			Description: "Certainty of beacon result found in the Network has expected ontology characterisics",
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
@@ -297,7 +297,7 @@ func genNetworkFetchThingsActionsWhereFilterFields(filterContainer *utils.Filter
 			graphql.InputObjectConfig{
 				Name:        "WeaviateNetworkFetchWhereInpObj",
 				Fields:      genNetworkFetchThingsAndActionsFilterFields(filterContainer),
-				Description: "", //TODO no desc in prototype
+				Description: "",
 			},
 		)),
 	}
@@ -525,12 +525,12 @@ func genWeaviateNetworkIntrospectBeaconPropertiesObj() *graphql.Object {
 
 func genNetworkIntrospectThingsActionsWhereFilterFields(filterContainer *utils.FilterContainer) *graphql.ArgumentConfig {
 	whereFilterFields := &graphql.ArgumentConfig{
-		Description: "", // TODO no desc
+		Description: "",
 		Type: graphql.NewNonNull(graphql.NewList(graphql.NewInputObject(
 			graphql.InputObjectConfig{
 				Name:        "WeaviateNetworkIntrospectWhereInpObj",
 				Fields:      genNetworkIntrospectThingsAndActionsFilterFields(filterContainer),
-				Description: "", // TODO
+				Description: "",
 			},
 		))),
 	}

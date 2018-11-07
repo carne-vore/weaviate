@@ -149,6 +149,8 @@ func assembleNetworkSchema(g *GraphQL, filterContainer *utils.FilterContainer) (
 	// this map is used to store all the Filter InputObjects, so that we can use them in references.
 	filterContainer.NetworkFilterOptions = make(map[string]*graphql.InputObject)
 
+	// TODO implement function that capitalizes all Weaviate names
+
 	for _, weaviate := range weaviateInstances {
 
 		// This map is used to store all the Thing and Action Objects, so that we can use them in references.

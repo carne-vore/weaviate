@@ -92,14 +92,14 @@ func genWeaviateNetworkWhereNameKeywordsInpObj() *graphql.InputObject {
 			Fields: graphql.InputObjectConfigFieldMap{
 				"value": &graphql.InputObjectFieldConfig{
 					Type:        graphql.String,
-					Description: "", // TODO this has no description in the prototype
+					Description: "",
 				},
 				"weight": &graphql.InputObjectFieldConfig{
 					Type:        graphql.Float,
-					Description: "", // TODO this has no description in the prototype
+					Description: "",
 				},
 			},
-			Description: "", // TODO this has no description in the prototype
+			Description: "",
 		},
 	)
 	return weaviateNetworkWhereNameKeywordsInpObj
@@ -144,15 +144,15 @@ func genNetworkFetchThingsAndActionsFilterFields(filterContainer *utils.FilterCo
 	networkFetchThingsAndActionsFilterFields := graphql.InputObjectConfigFieldMap{
 		"class": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(networkFetchWhereInpObjClassInpObj),
-			Description: "", // TODO no description in prototype
+			Description: "",
 		},
 		"properties": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(networkFetchWhereInpObjPropertiesObj),
-			Description: "", // TODO no description in prototype
+			Description: "",
 		},
 		"first": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Int,
-			Description: "", // TODO no description in prototype
+			Description: "",
 		},
 	}
 
@@ -166,22 +166,22 @@ func genNetworkFetchWhereInpObjPropertiesObj(filterContainer *utils.FilterContai
 
 	filterPropertiesElements["certainty"] = &graphql.InputObjectFieldConfig{
 		Type:        graphql.Float,
-		Description: "", // TODO this has no description in the prototype
+		Description: "",
 	}
 	filterPropertiesElements["name"] = &graphql.InputObjectFieldConfig{
 		Type:        graphql.String,
-		Description: "", // TODO this has no description in the prototype
+		Description: "",
 	}
 	filterPropertiesElements["keywords"] = &graphql.InputObjectFieldConfig{
 		Type:        graphql.NewList(genNetworkFetchWherePropertyWhereKeywordsInpObj()),
-		Description: "", // TODO this has no description in the prototype
+		Description: "",
 	}
 
 	networkFetchWhereInpObjPropertiesObj := graphql.NewInputObject(
 		graphql.InputObjectConfig{
 			Name:        "WeaviateNetworkFetchWhereInpObjProperties",
 			Fields:      filterPropertiesElements,
-			Description: "", // TODO no description in prototype
+			Description: "",
 		},
 	)
 
@@ -195,14 +195,14 @@ func genNetworkFetchWherePropertyWhereKeywordsInpObj() *graphql.InputObject {
 			Fields: graphql.InputObjectConfigFieldMap{
 				"value": &graphql.InputObjectFieldConfig{
 					Type:        graphql.String,
-					Description: "", // TODO this has no description in the prototype
+					Description: "",
 				},
 				"weight": &graphql.InputObjectFieldConfig{
 					Type:        graphql.Float,
-					Description: "", // TODO this has no description in the prototype
+					Description: "",
 				},
 			},
-			Description: "", // TODO this has no description in the prototype
+			Description: "",
 		},
 	)
 	return outputObject
@@ -212,19 +212,19 @@ func genNetworkFetchWhereInpObjClassInpObj(filterContainer *utils.FilterContaine
 	filterClassElements := graphql.InputObjectConfigFieldMap{
 		"name": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "", // TODO: no description in prototype
+			Description: "",
 		},
 		"certainty": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Float,
-			Description: "", // TODO: no description in prototype
+			Description: "",
 		},
 		"keywords": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(filterContainer.WeaviateNetworkWhereNameKeywordsInpObj),
-			Description: "", // TODO: no description in prototype
+			Description: "",
 		},
 		"first": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Int,
-			Description: "", // TODO: no description in prototype
+			Description: "",
 		},
 	}
 
@@ -232,7 +232,7 @@ func genNetworkFetchWhereInpObjClassInpObj(filterContainer *utils.FilterContaine
 		graphql.InputObjectConfig{
 			Name:        "WeaviateNetworkFetchWhereInpObjClassInpObj",
 			Fields:      filterClassElements,
-			Description: "", // TODO no description in prototype
+			Description: "",
 		},
 	)
 	return networkFetchWhereInpObjClassInpObj
@@ -245,16 +245,12 @@ func genNetworkIntrospectThingsAndActionsFilterFields(filterContainer *utils.Fil
 	networkIntrospectThingsAndActionsFilterFields := graphql.InputObjectConfigFieldMap{
 		"class": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(weaviateNetworkIntrospectWhereClassObj),
-			Description: "", // TODO no description in prototype
+			Description: "",
 		},
 		"properties": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(weaviateNetworkIntrospectWherePropertiesObj),
-			Description: "", // TODO no description in prototype
+			Description: "",
 		},
-		//		"first": &graphql.InputObjectFieldConfig{
-		//			Type:        graphql.Int,
-		//			Description: "", // TODO no description in prototype
-		//		},
 	}
 
 	return networkIntrospectThingsAndActionsFilterFields
@@ -264,19 +260,19 @@ func genWeaviateNetworkIntrospectWherePropertiesObj(filterContainer *utils.Filte
 	filterPropertiesElements := graphql.InputObjectConfigFieldMap{
 		"first": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Int,
-			Description: "", // TODO this has no description in the prototype
+			Description: "",
 		},
 		"certainty": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Float,
-			Description: "", // TODO this has no description in the prototype
+			Description: "",
 		},
 		"name": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "", // TODO this has no description in the prototype
+			Description: "",
 		},
 		"keywords": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(filterContainer.WeaviateNetworkWhereNameKeywordsInpObj),
-			Description: "", // TODO this has no description in the prototype
+			Description: "",
 		},
 	}
 
@@ -284,7 +280,7 @@ func genWeaviateNetworkIntrospectWherePropertiesObj(filterContainer *utils.Filte
 		graphql.InputObjectConfig{
 			Name:        "WeaviateNetworkIntrospectWherePropertiesObj",
 			Fields:      filterPropertiesElements,
-			Description: "", // TODO no description in prototype
+			Description: "",
 		},
 	)
 
@@ -295,19 +291,19 @@ func genWeaviateNetworkIntrospectWhereClassObj(filterContainer *utils.FilterCont
 	filterClassElements := graphql.InputObjectConfigFieldMap{
 		"name": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "", // TODO: no description in prototype
+			Description: "",
 		},
 		"certainty": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Float,
-			Description: "", // TODO: no description in prototype
+			Description: "",
 		},
 		"keywords": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(filterContainer.WeaviateNetworkWhereNameKeywordsInpObj),
-			Description: "", // TODO: no description in prototype
+			Description: "",
 		},
 		"first": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Int,
-			Description: "", // TODO: no description in prototype
+			Description: "",
 		},
 	}
 
@@ -315,7 +311,7 @@ func genWeaviateNetworkIntrospectWhereClassObj(filterContainer *utils.FilterCont
 		graphql.InputObjectConfig{
 			Name:        "WeaviateNetworkIntrospectWhereClassObj",
 			Fields:      filterClassElements,
-			Description: "", // TODO no description in prototype
+			Description: "",
 		},
 	)
 	return weaviateNetworkIntrospectWhereClassObj
