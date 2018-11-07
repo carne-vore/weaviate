@@ -22,7 +22,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const enableNetworkQueryComparison bool = false
+// Enable or disable network query comparisons. Default: true
+const enableNetworkQueryComparison bool = true
+
+// Enable or disable element description comparisons. Default: true
+// the goal of this setting is to allow rapid development of the prototype while
+// still checking if all it's elements are present in Weaviate, and in the right place.
+const enableDescriptionsComparison bool = false
 
 func init() {
 	skipGraphqlTest = (os.Getenv("GRAPHQL_TESTS") == "skip")
@@ -83,10 +89,22 @@ func traverseNestedSchemaLayer(t *testing.T, expectedLayerKey string, expectedLa
 
 		for key, expectedValue := range expectedLayerValue {
 			schemaPath := fmt.Sprintf("%s_%s", updatedExpectedLayerKey, key)
-			if actualValue, ok := actualLayerValue[key]; ok {
-				compareExpectedElementToActualElement(t, schemaPath, expectedValue, actualValue)
+
+			/* The prototype is used for prototyping new features, the descriptions aren't always the definitive versions.*/
+			if !enableDescriptionsComparison {
+				if !strings.Contains(schemaPath, "escription") {
+					if actualValue, ok := actualLayerValue[key]; ok {
+						compareExpectedElementToActualElement(t, schemaPath, expectedValue, actualValue)
+					} else {
+						t.Errorf(fmt.Sprintf("Element %s not found in map at path %s", key, schemaPath))
+					}
+				}
 			} else {
-				t.Errorf(fmt.Sprintf("Element %s not found in map at path %s", key, schemaPath))
+				if actualValue, ok := actualLayerValue[key]; ok {
+					compareExpectedElementToActualElement(t, schemaPath, expectedValue, actualValue)
+				} else {
+					t.Errorf(fmt.Sprintf("Element %s not found in map at path %s", key, schemaPath))
+				}
 			}
 		}
 	}
@@ -171,7 +189,7 @@ func fetchExpectedMapElementFromActualList(t *testing.T, schemaPath string, expe
 			traverseNestedSchemaLayer(t, schemaPath, parsedExpectedElement, parsedActualElement)
 		}
 	}
-	// Allow for the exclusion of NetworkFetch elements from the comparison (as these weren't implemented at the time of writing)
+	// Allow for the exclusion of Network elements from the comparison (as these weren't implemented at the time of writing)
 	if enableNetworkQueryComparison {
 		assert.Equal(t, true, expectedElementFoundInActualList, fmt.Sprintf("Expected element %s not found in path %s", expectedName, schemaPath))
 	} else {
@@ -188,7 +206,7 @@ func fetchExpectedScalarElementFromActualList(t *testing.T, schemaPath string, e
 			expectedElementFoundInActualList = true
 		}
 	}
-	// Allow for the exclusion of NetworkFetch elements from the comparison (as these weren't implemented at the time of writing)
+	// Allow for the exclusion of Network elements from the comparison (as these weren't implemented at the time of writing)
 	if enableNetworkQueryComparison {
 		assert.Equal(t, true, expectedElementFoundInActualList, fmt.Sprintf("Expected element %s not found in path %s", expectedElement, schemaPath))
 	} else {

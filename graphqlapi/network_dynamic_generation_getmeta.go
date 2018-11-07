@@ -26,14 +26,14 @@ import (
 func genNetworkMetaClassFieldsFromSchema(databaseSchema []*models.SemanticSchemaClass, classParentTypeIsAction bool, weaviate string) (*graphql.Object, error) {
 	classFields := graphql.Fields{}
 	name := fmt.Sprintf("%s%s%s", "WeaviateNetworkGetMeta", weaviate, "ThingsObj")
-	description := "Type of Things i.e. Things classes to GetMeta information of on the network"
+	description := "Type of Things i.e. Things classes to GetMeta information of on a Weaviate in the Network"
 	if classParentTypeIsAction {
-		name = "WeaviateNetworkGetMetaActionsObj"
-		description = "Type of Actions i.e. Actions classes to GetMeta information of on the network"
+		name = fmt.Sprintf("%s%s%s", "WeaviateNetworkGetMeta", weaviate, "ActionsObj")
+		description = "Type of Actions i.e. Actions classes to GetMeta information of on a Weaviate in the Network"
 	}
 
 	for _, class := range databaseSchema {
-		field, err := genSingleNetworkMetaClassField(class, class.Description)
+		field, err := genSingleNetworkMetaClassField(class, class.Description, weaviate)
 
 		if err != nil {
 			return nil, err
@@ -51,13 +51,13 @@ func genNetworkMetaClassFieldsFromSchema(databaseSchema []*models.SemanticSchema
 	return graphql.NewObject(networkGetMetaClasses), nil
 }
 
-func genSingleNetworkMetaClassField(class *models.SemanticSchemaClass, description string) (*graphql.Field, error) {
-	metaClassName := fmt.Sprintf("%s%s%s", "Network", "Meta", class.Class)
+func genSingleNetworkMetaClassField(class *models.SemanticSchemaClass, description string, weaviate string) (*graphql.Field, error) {
+	metaClassName := fmt.Sprintf("%s%s%s", weaviate, "Meta", class.Class)
 
 	singleClassPropertyFields := graphql.ObjectConfig{
 		Name: metaClassName,
 		Fields: (graphql.FieldsThunk)(func() graphql.Fields {
-			singleClassPropertyFields, err := genSingleNetworkMetaClassPropertyFields(class)
+			singleClassPropertyFields, err := genSingleNetworkMetaClassPropertyFields(class, weaviate)
 
 			if err != nil {
 				panic("Failed to assemble single Network Meta Class field")
@@ -90,9 +90,9 @@ func genSingleNetworkMetaClassField(class *models.SemanticSchemaClass, descripti
 	return singleClassPropertyFieldsField, nil
 }
 
-func genSingleNetworkMetaClassPropertyFields(class *models.SemanticSchemaClass) (graphql.Fields, error) {
+func genSingleNetworkMetaClassPropertyFields(class *models.SemanticSchemaClass, weaviate string) (graphql.Fields, error) {
 	singleClassPropertyFields := graphql.Fields{}
-	metaPropertyObj := genNetworkMetaPropertyObj(class)
+	metaPropertyObj := genNetworkMetaPropertyObj(class, weaviate)
 
 	metaPropertyObjField := &graphql.Field{
 		Description: "Meta information about a class object and its (filtered) objects",
@@ -111,7 +111,7 @@ func genSingleNetworkMetaClassPropertyFields(class *models.SemanticSchemaClass) 
 			return nil, err
 		}
 
-		convertedDataType, err := handleNetworkGetMetaNonObjectPropertyDataTypes(*propertyType, class, property)
+		convertedDataType, err := handleNetworkGetMetaNonObjectPropertyDataTypes(*propertyType, class, property, weaviate)
 
 		if err != nil {
 			return nil, err
@@ -123,13 +123,13 @@ func genSingleNetworkMetaClassPropertyFields(class *models.SemanticSchemaClass) 
 	return singleClassPropertyFields, nil
 }
 
-func handleNetworkGetMetaNonObjectPropertyDataTypes(dataType schema.DataType, class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty) (*graphql.Field, error) {
-	metaClassStringPropertyFields := genNetworkMetaClassStringPropertyFields(class, property)
-	metaClassIntPropertyFields := genNetworkMetaClassIntPropertyFields(class, property)
-	metaClassNumberPropertyFields := genNetworkMetaClassNumberPropertyFields(class, property)
-	metaClassBooleanPropertyFields := genNetworkMetaClassBooleanPropertyFields(class, property)
-	metaClassDatePropertyFields := genNetworkMetaClassDatePropertyFields(class, property)
-	metaClassCRefPropertyFields := genNetworkMetaClassCRefPropertyObj(class, property)
+func handleNetworkGetMetaNonObjectPropertyDataTypes(dataType schema.DataType, class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty, weaviate string) (*graphql.Field, error) {
+	metaClassStringPropertyFields := genNetworkMetaClassStringPropertyFields(class, property, weaviate)
+	metaClassIntPropertyFields := genNetworkMetaClassIntPropertyFields(class, property, weaviate)
+	metaClassNumberPropertyFields := genNetworkMetaClassNumberPropertyFields(class, property, weaviate)
+	metaClassBooleanPropertyFields := genNetworkMetaClassBooleanPropertyFields(class, property, weaviate)
+	metaClassDatePropertyFields := genNetworkMetaClassDatePropertyFields(class, property, weaviate)
+	metaClassCRefPropertyFields := genNetworkMetaClassCRefPropertyObj(class, property, weaviate)
 
 	switch dataType {
 
@@ -192,13 +192,13 @@ func handleNetworkGetMetaNonObjectPropertyDataTypes(dataType schema.DataType, cl
 	}
 }
 
-func genNetworkMetaClassStringPropertyFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty) *graphql.Object {
-	topOccurrencesFields := genNetworkMetaClassStringPropertyTopOccurrencesFields(class, property)
+func genNetworkMetaClassStringPropertyFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty, weaviate string) *graphql.Object {
+	topOccurrencesFields := genNetworkMetaClassStringPropertyTopOccurrencesFields(class, property, weaviate)
 
 	getMetaPointingFields := graphql.Fields{
 
 		"type": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s", "Network", "Meta", class.Class, "Type"),
+			Name:        fmt.Sprintf("%s%s%s%s", weaviate, "Meta", class.Class, "Type"),
 			Description: propertyType,
 			Type:        graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -207,7 +207,7 @@ func genNetworkMetaClassStringPropertyFields(class *models.SemanticSchemaClass, 
 		},
 
 		"count": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s", "Network", "Meta", class.Class, "Count"),
+			Name:        fmt.Sprintf("%s%s%s%s", weaviate, "Meta", class.Class, "Count"),
 			Description: propertyCount,
 			Type:        graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -216,7 +216,7 @@ func genNetworkMetaClassStringPropertyFields(class *models.SemanticSchemaClass, 
 		},
 
 		"topOccurrences": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s", "Network", "Meta", class.Class, "TopOccurrences"),
+			Name:        fmt.Sprintf("%s%s%s%s", weaviate, "Meta", class.Class, "TopOccurrences"),
 			Description: propertyTopOccurrences,
 			Type:        graphql.NewList(topOccurrencesFields),
 			Args: graphql.FieldConfigArgument{
@@ -236,7 +236,7 @@ func genNetworkMetaClassStringPropertyFields(class *models.SemanticSchemaClass, 
 	}
 
 	getMetaStringProperty := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Obj"),
+		Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Obj"),
 		Fields:      getMetaPointingFields,
 		Description: propertyObject,
 	}
@@ -244,11 +244,11 @@ func genNetworkMetaClassStringPropertyFields(class *models.SemanticSchemaClass, 
 	return graphql.NewObject(getMetaStringProperty)
 }
 
-func genNetworkMetaClassStringPropertyTopOccurrencesFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty) *graphql.Object {
+func genNetworkMetaClassStringPropertyTopOccurrencesFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty, weaviate string) *graphql.Object {
 	getMetaPointingFields := graphql.Fields{
 
 		"value": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "TopOccurrencesValue"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "TopOccurrencesValue"),
 			Description: propertyTopOccurrencesValue,
 			Type:        graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -257,7 +257,7 @@ func genNetworkMetaClassStringPropertyTopOccurrencesFields(class *models.Semanti
 		},
 
 		"occurs": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "TopOccurrencesOccurs"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "TopOccurrencesOccurs"),
 			Description: propertyTopOccurrencesOccurs,
 			Type:        graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -267,7 +267,7 @@ func genNetworkMetaClassStringPropertyTopOccurrencesFields(class *models.Semanti
 	}
 
 	getMetaPointing := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "TopOccurrencesObj"),
+		Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "TopOccurrencesObj"),
 		Fields:      getMetaPointingFields,
 		Description: propertyTopOccurrences,
 	}
@@ -275,11 +275,11 @@ func genNetworkMetaClassStringPropertyTopOccurrencesFields(class *models.Semanti
 	return graphql.NewObject(getMetaPointing)
 }
 
-func genNetworkMetaClassIntPropertyFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty) *graphql.Object {
+func genNetworkMetaClassIntPropertyFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty, weaviate string) *graphql.Object {
 	getMetaIntFields := graphql.Fields{
 
 		"sum": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Sum"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Sum"),
 			Description: propertySum,
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -288,7 +288,7 @@ func genNetworkMetaClassIntPropertyFields(class *models.SemanticSchemaClass, pro
 		},
 
 		"type": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Type"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Type"),
 			Description: propertyType,
 			Type:        graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -297,7 +297,7 @@ func genNetworkMetaClassIntPropertyFields(class *models.SemanticSchemaClass, pro
 		},
 
 		"lowest": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Lowest"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Lowest"),
 			Description: propertyLowest,
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -306,7 +306,7 @@ func genNetworkMetaClassIntPropertyFields(class *models.SemanticSchemaClass, pro
 		},
 
 		"highest": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Highest"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Highest"),
 			Description: propertyHighest,
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -315,7 +315,7 @@ func genNetworkMetaClassIntPropertyFields(class *models.SemanticSchemaClass, pro
 		},
 
 		"average": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Average"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Average"),
 			Description: propertyAverage,
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -324,7 +324,7 @@ func genNetworkMetaClassIntPropertyFields(class *models.SemanticSchemaClass, pro
 		},
 
 		"count": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Count"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Count"),
 			Description: propertyCount,
 			Type:        graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -334,7 +334,7 @@ func genNetworkMetaClassIntPropertyFields(class *models.SemanticSchemaClass, pro
 	}
 
 	getMetaIntProperty := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Obj"),
+		Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Obj"),
 		Fields:      getMetaIntFields,
 		Description: propertyObject,
 	}
@@ -342,11 +342,11 @@ func genNetworkMetaClassIntPropertyFields(class *models.SemanticSchemaClass, pro
 	return graphql.NewObject(getMetaIntProperty)
 }
 
-func genNetworkMetaClassNumberPropertyFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty) *graphql.Object {
+func genNetworkMetaClassNumberPropertyFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty, weaviate string) *graphql.Object {
 	getMetaNumberFields := graphql.Fields{
 
 		"sum": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Sum"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Sum"),
 			Description: propertySum,
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -355,7 +355,7 @@ func genNetworkMetaClassNumberPropertyFields(class *models.SemanticSchemaClass, 
 		},
 
 		"type": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Type"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Type"),
 			Description: propertyType,
 			Type:        graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -364,7 +364,7 @@ func genNetworkMetaClassNumberPropertyFields(class *models.SemanticSchemaClass, 
 		},
 
 		"lowest": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Lowest"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Lowest"),
 			Description: propertyLowest,
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -373,7 +373,7 @@ func genNetworkMetaClassNumberPropertyFields(class *models.SemanticSchemaClass, 
 		},
 
 		"highest": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Highest"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Highest"),
 			Description: propertyHighest,
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -382,7 +382,7 @@ func genNetworkMetaClassNumberPropertyFields(class *models.SemanticSchemaClass, 
 		},
 
 		"average": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Average"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Average"),
 			Description: propertyAverage,
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -391,7 +391,7 @@ func genNetworkMetaClassNumberPropertyFields(class *models.SemanticSchemaClass, 
 		},
 
 		"count": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Count"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Count"),
 			Description: propertyCount,
 			Type:        graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -401,7 +401,7 @@ func genNetworkMetaClassNumberPropertyFields(class *models.SemanticSchemaClass, 
 	}
 
 	getMetaNumberProperty := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Obj"),
+		Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Obj"),
 		Fields:      getMetaNumberFields,
 		Description: propertyObject,
 	}
@@ -409,11 +409,11 @@ func genNetworkMetaClassNumberPropertyFields(class *models.SemanticSchemaClass, 
 	return graphql.NewObject(getMetaNumberProperty)
 }
 
-func genNetworkMetaClassBooleanPropertyFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty) *graphql.Object {
+func genNetworkMetaClassBooleanPropertyFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty, weaviate string) *graphql.Object {
 	getMetaBooleanFields := graphql.Fields{
 
 		"type": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Type"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Type"),
 			Description: propertyType,
 			Type:        graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -423,7 +423,7 @@ func genNetworkMetaClassBooleanPropertyFields(class *models.SemanticSchemaClass,
 		},
 
 		"count": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Count"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Count"),
 			Description: propertyCount,
 			Type:        graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -433,7 +433,7 @@ func genNetworkMetaClassBooleanPropertyFields(class *models.SemanticSchemaClass,
 		},
 
 		"totalTrue": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "TotalTrue"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "TotalTrue"),
 			Description: "The amount of times this property's value is true in the dataset",
 			Type:        graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -443,7 +443,7 @@ func genNetworkMetaClassBooleanPropertyFields(class *models.SemanticSchemaClass,
 		},
 
 		"percentageTrue": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "PercentageTrue"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "PercentageTrue"),
 			Description: "Percentage of boolean values that is true",
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -454,7 +454,7 @@ func genNetworkMetaClassBooleanPropertyFields(class *models.SemanticSchemaClass,
 	}
 
 	getMetaBooleanProperty := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Obj"),
+		Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Obj"),
 		Fields:      getMetaBooleanFields,
 		Description: propertyObject,
 	}
@@ -463,13 +463,13 @@ func genNetworkMetaClassBooleanPropertyFields(class *models.SemanticSchemaClass,
 }
 
 // a duplicate of the string function, this is a separate function to account for future expansions of functionality
-func genNetworkMetaClassDatePropertyFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty) *graphql.Object {
-	topOccurrencesFields := genNetworkMetaClassDatePropertyTopOccurrencesFields(class, property)
+func genNetworkMetaClassDatePropertyFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty, weaviate string) *graphql.Object {
+	topOccurrencesFields := genNetworkMetaClassDatePropertyTopOccurrencesFields(class, property, weaviate)
 
 	getMetaDateFields := graphql.Fields{
 
 		"type": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Type"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Type"),
 			Description: propertyType,
 			Type:        graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -479,7 +479,7 @@ func genNetworkMetaClassDatePropertyFields(class *models.SemanticSchemaClass, pr
 		},
 
 		"count": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Count"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Count"),
 			Description: propertyCount,
 			Type:        graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -489,7 +489,7 @@ func genNetworkMetaClassDatePropertyFields(class *models.SemanticSchemaClass, pr
 		},
 
 		"topOccurrences": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "TopOccurrences"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "TopOccurrences"),
 			Description: propertyTopOccurrences,
 			Type:        graphql.NewList(topOccurrencesFields),
 			Args: graphql.FieldConfigArgument{
@@ -510,7 +510,7 @@ func genNetworkMetaClassDatePropertyFields(class *models.SemanticSchemaClass, pr
 	}
 
 	getMetaDateProperty := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Obj"),
+		Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Obj"),
 		Fields:      getMetaDateFields,
 		Description: propertyObject,
 	}
@@ -518,11 +518,11 @@ func genNetworkMetaClassDatePropertyFields(class *models.SemanticSchemaClass, pr
 	return graphql.NewObject(getMetaDateProperty)
 }
 
-func genNetworkMetaClassDatePropertyTopOccurrencesFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty) *graphql.Object {
+func genNetworkMetaClassDatePropertyTopOccurrencesFields(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty, weaviate string) *graphql.Object {
 	getMetaMetaPointingFields := graphql.Fields{
 
 		"value": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "TopOccurrencesValue"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "TopOccurrencesValue"),
 			Description: propertyTopOccurrencesValue,
 			Type:        graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -532,7 +532,7 @@ func genNetworkMetaClassDatePropertyTopOccurrencesFields(class *models.SemanticS
 		},
 
 		"occurs": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "TopOccurrencesOccurs"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "TopOccurrencesOccurs"),
 			Description: propertyTopOccurrencesOccurs,
 			Type:        graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -543,7 +543,7 @@ func genNetworkMetaClassDatePropertyTopOccurrencesFields(class *models.SemanticS
 	}
 
 	getMetaMetaPointing := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "TopOccurrencesObj"),
+		Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "TopOccurrencesObj"),
 		Fields:      getMetaMetaPointingFields,
 		Description: propertyTopOccurrences,
 	}
@@ -551,11 +551,11 @@ func genNetworkMetaClassDatePropertyTopOccurrencesFields(class *models.SemanticS
 	return graphql.NewObject(getMetaMetaPointing)
 }
 
-func genNetworkMetaClassCRefPropertyObj(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty) *graphql.Object {
+func genNetworkMetaClassCRefPropertyObj(class *models.SemanticSchemaClass, property *models.SemanticSchemaClassProperty, weaviate string) *graphql.Object {
 	getMetaCRefPropertyFields := graphql.Fields{
 
 		"type": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Type"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Type"),
 			Description: propertyType,
 			Type:        graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -565,7 +565,7 @@ func genNetworkMetaClassCRefPropertyObj(class *models.SemanticSchemaClass, prope
 		},
 
 		"count": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Count"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Count"),
 			Description: propertyCount,
 			Type:        graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -575,7 +575,7 @@ func genNetworkMetaClassCRefPropertyObj(class *models.SemanticSchemaClass, prope
 		},
 
 		"pointingTo": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "PointingTo"),
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "PointingTo"),
 			Description: "Which other classes the object property is pointing to",
 			Type:        graphql.NewList(graphql.String),
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -586,7 +586,7 @@ func genNetworkMetaClassCRefPropertyObj(class *models.SemanticSchemaClass, prope
 	}
 
 	metaClassCRefPropertyConf := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s%s%s", "Network", "Meta", class.Class, property.Name, "Obj"),
+		Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "Obj"),
 		Fields:      getMetaCRefPropertyFields,
 		Description: propertyObject,
 	}
@@ -594,11 +594,11 @@ func genNetworkMetaClassCRefPropertyObj(class *models.SemanticSchemaClass, prope
 	return graphql.NewObject(metaClassCRefPropertyConf)
 }
 
-func genNetworkMetaPropertyObj(class *models.SemanticSchemaClass) *graphql.Object {
+func genNetworkMetaPropertyObj(class *models.SemanticSchemaClass, weaviate string) *graphql.Object {
 	getMetaPropertyFields := graphql.Fields{
 
 		"count": &graphql.Field{
-			Name:        fmt.Sprintf("%s%s%s%s", "Network", "Meta", class.Class, "MetaCount"),
+			Name:        fmt.Sprintf("%s%s%s%s", weaviate, "Meta", class.Class, "MetaCount"),
 			Description: "Total amount of found instances",
 			Type:        graphql.Int,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
@@ -609,7 +609,7 @@ func genNetworkMetaPropertyObj(class *models.SemanticSchemaClass) *graphql.Objec
 	}
 
 	metaPropertyFields := graphql.ObjectConfig{
-		Name:        fmt.Sprintf("%s%s%s%s", "Network", "Meta", class.Class, "MetaObj"),
+		Name:        fmt.Sprintf("%s%s%s%s", weaviate, "Meta", class.Class, "MetaObj"),
 		Fields:      getMetaPropertyFields,
 		Description: "Meta information about a class object and its (filtered) objects",
 	}

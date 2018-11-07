@@ -18,7 +18,7 @@ import (
 	"fmt"
 
 	dbconnector "github.com/creativesoftwarefdn/weaviate/connectors"
-	gqlutils "github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
+	utils "github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
 	"github.com/graphql-go/graphql"
 )
 
@@ -68,7 +68,7 @@ func (g *GraphQL) buildGraphqlSchema() error {
 }
 
 func assembleFullSchema(g *GraphQL) (graphql.Fields, error) {
-	filters := gqlutils.FilterContainer{
+	filters := utils.FilterContainer{
 		WhereOperatorEnum: genOperatorObject(),
 	}
 
@@ -90,7 +90,7 @@ func assembleFullSchema(g *GraphQL) (graphql.Fields, error) {
 	return rootFields, nil
 }
 
-func assembleLocalSchema(g *GraphQL, filterContainer *gqlutils.FilterContainer) (*graphql.Field, error) {
+func assembleLocalSchema(g *GraphQL, filterContainer *utils.FilterContainer) (*graphql.Field, error) {
 	// This map is used to store all the Thing and Action Objects, so that we can use them in references.
 	getActionsAndThings := make(map[string]*graphql.Object)
 	// this map is used to store all the Filter InputObjects, so that we can use them in references.
@@ -140,9 +140,9 @@ func assembleLocalSchema(g *GraphQL, filterContainer *gqlutils.FilterContainer) 
 	return localField, nil
 }
 
-func assembleNetworkSchema(g *GraphQL, filterContainer *gqlutils.FilterContainer) (*graphql.Field, error) {
+func assembleNetworkSchema(g *GraphQL, filterContainer *utils.FilterContainer) (*graphql.Field, error) {
 	// TODO: placeholder loop, remove this once p2p functionality is up
-	weaviateInstances := []string{"WeaviateB"}
+	weaviateInstances := []string{"WeaviateB", "WeaviateC"}
 	weaviateNetworkGetResults := make(map[string]*graphql.Object)
 	weaviateNetworkGetMetaResults := make(map[string]*graphql.Object)
 
@@ -189,22 +189,30 @@ func assembleNetworkSchema(g *GraphQL, filterContainer *gqlutils.FilterContainer
 	// TODO this is a temp function, inserts a temp weaviate obj in between Get and Things/Actions
 	networkGetObject, networkGetMetaObject := insertDummyNetworkWeaviateField(weaviateNetworkGetResults, weaviateNetworkGetMetaResults)
 
+	genGlobalNetworkFilterElements(filterContainer)
+
 	networkFetchObj := genFieldsObjForNetworkFetch(filterContainer)
 
-	//networkFetchFilters := genNetworkFetchThingsAndActionsFilterFields()
+	networkIntrospectObj := genFieldsObjForNetworkIntrospect(filterContainer)
 
-	graphQLNetworkFieldContents := gqlutils.GraphQLNetworkFieldContents{
+	graphQLNetworkFieldContents := utils.GraphQLNetworkFieldContents{
 		networkGetObject,
 		networkGetMetaObject,
 		networkFetchObj,
-		//networkFetchFilters,
+		networkIntrospectObj,
 	}
 
 	networkGetAndGetMetaObject := genNetworkFields(&graphQLNetworkFieldContents, filterContainer)
 
 	networkField := &graphql.Field{
 		Type:        networkGetAndGetMetaObject,
-		Description: "Query a network Weaviate instance",
+		Description: "Query a Weaviate network",
+		Args: graphql.FieldConfigArgument{
+			"networkTimeout": &graphql.ArgumentConfig{
+				Description: "The max time to request an answer from the network. It is the time in seconds",
+				Type:        graphql.Int,
+			},
+		},
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			result, err := dbConnector.GetGraph(p)
 			return result, err

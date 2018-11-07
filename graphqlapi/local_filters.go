@@ -103,7 +103,7 @@ func genOperandsObject(filterContainer *utils.FilterContainer, staticFilterEleme
 		},
 	)
 
-	filterContainer.LocalFilterOptions["operands"] = outputObject
+	filterContainer.Operands = outputObject
 
 	return outputObject
 }
@@ -112,7 +112,7 @@ func genOperandsObjectFields(filterContainer *utils.FilterContainer, staticFilte
 	outputFieldConfigMap := staticFilterElements
 
 	outputFieldConfigMap["operands"] = &graphql.InputObjectFieldConfig{
-		Type:        graphql.NewList(filterContainer.LocalFilterOptions["operands"]),
+		Type:        graphql.NewList(filterContainer.Operands),
 		Description: "Operands in the 'where' filter field, is a list of objects",
 	}
 
