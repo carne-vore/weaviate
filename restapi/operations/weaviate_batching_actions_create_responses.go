@@ -37,7 +37,7 @@ type WeaviateBatchingActionsCreateOK struct {
 	/*
 	  In: Body
 	*/
-	Payload []*models.ActionGetResponse `json:"body,omitempty"`
+	Payload []*models.ActionsGetResponse `json:"body,omitempty"`
 }
 
 // NewWeaviateBatchingActionsCreateOK creates WeaviateBatchingActionsCreateOK with default headers values
@@ -47,13 +47,13 @@ func NewWeaviateBatchingActionsCreateOK() *WeaviateBatchingActionsCreateOK {
 }
 
 // WithPayload adds the payload to the weaviate batching actions create o k response
-func (o *WeaviateBatchingActionsCreateOK) WithPayload(payload []*models.ActionGetResponse) *WeaviateBatchingActionsCreateOK {
+func (o *WeaviateBatchingActionsCreateOK) WithPayload(payload []*models.ActionsGetResponse) *WeaviateBatchingActionsCreateOK {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the weaviate batching actions create o k response
-func (o *WeaviateBatchingActionsCreateOK) SetPayload(payload []*models.ActionGetResponse) {
+func (o *WeaviateBatchingActionsCreateOK) SetPayload(payload []*models.ActionsGetResponse) {
 	o.Payload = payload
 }
 
@@ -63,7 +63,7 @@ func (o *WeaviateBatchingActionsCreateOK) WriteResponse(rw http.ResponseWriter, 
 	rw.WriteHeader(200)
 	payload := o.Payload
 	if payload == nil {
-		payload = make([]*models.ActionGetResponse, 0, 50)
+		payload = make([]*models.ActionsGetResponse, 0, 50)
 	}
 
 	if err := producer.Produce(rw, payload); err != nil {
@@ -84,7 +84,7 @@ type WeaviateBatchingActionsCreateAccepted struct {
 	/*
 	  In: Body
 	*/
-	Payload []*models.ActionGetResponse `json:"body,omitempty"`
+	Payload []*models.ActionsGetResponse `json:"body,omitempty"`
 }
 
 // NewWeaviateBatchingActionsCreateAccepted creates WeaviateBatchingActionsCreateAccepted with default headers values
@@ -94,13 +94,13 @@ func NewWeaviateBatchingActionsCreateAccepted() *WeaviateBatchingActionsCreateAc
 }
 
 // WithPayload adds the payload to the weaviate batching actions create accepted response
-func (o *WeaviateBatchingActionsCreateAccepted) WithPayload(payload []*models.ActionGetResponse) *WeaviateBatchingActionsCreateAccepted {
+func (o *WeaviateBatchingActionsCreateAccepted) WithPayload(payload []*models.ActionsGetResponse) *WeaviateBatchingActionsCreateAccepted {
 	o.Payload = payload
 	return o
 }
 
 // SetPayload sets the payload to the weaviate batching actions create accepted response
-func (o *WeaviateBatchingActionsCreateAccepted) SetPayload(payload []*models.ActionGetResponse) {
+func (o *WeaviateBatchingActionsCreateAccepted) SetPayload(payload []*models.ActionsGetResponse) {
 	o.Payload = payload
 }
 
@@ -110,7 +110,7 @@ func (o *WeaviateBatchingActionsCreateAccepted) WriteResponse(rw http.ResponseWr
 	rw.WriteHeader(202)
 	payload := o.Payload
 	if payload == nil {
-		payload = make([]*models.ActionGetResponse, 0, 50)
+		payload = make([]*models.ActionsGetResponse, 0, 50)
 	}
 
 	if err := producer.Produce(rw, payload); err != nil {

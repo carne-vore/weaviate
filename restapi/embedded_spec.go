@@ -618,7 +618,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ActionGetResponse"
+                "$ref": "#/definitions/ActionsGetResponse"
               }
             }
           },
@@ -627,7 +627,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ActionGetResponse"
+                "$ref": "#/definitions/ActionsGetResponse"
               }
             }
           },
@@ -701,7 +701,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ThingGetResponse"
+                "$ref": "#/definitions/ThingsGetResponse"
               }
             }
           },
@@ -710,7 +710,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ThingGetResponse"
+                "$ref": "#/definitions/ThingsGetResponse"
               }
             }
           },
@@ -2262,6 +2262,41 @@ func init() {
         }
       ]
     },
+    "ActionsGetResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Action"
+        },
+        {
+          "properties": {
+            "actionId": {
+              "description": "ID of the action.",
+              "type": "string",
+              "format": "uuid"
+            },
+            "result": {
+              "description": "results for this specific action.",
+              "format": "object",
+              "properties": {
+                "errors": {
+                  "$ref": "#/definitions/ErrorResponse"
+                },
+                "status": {
+                  "type": "string",
+                  "default": "SUCCESS",
+                  "enum": [
+                    "SUCCESS",
+                    "PENDING",
+                    "FAILED"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "ActionsListResponse": {
       "description": "List of actions.",
       "type": "object",
@@ -2799,6 +2834,41 @@ func init() {
         },
         {
           "type": "object"
+        }
+      ]
+    },
+    "ThingsGetResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Thing"
+        },
+        {
+          "properties": {
+            "actionId": {
+              "description": "ID of the thing.",
+              "type": "string",
+              "format": "uuid"
+            },
+            "result": {
+              "description": "results for this specific thing.",
+              "format": "object",
+              "properties": {
+                "errors": {
+                  "$ref": "#/definitions/ErrorResponse"
+                },
+                "status": {
+                  "type": "string",
+                  "default": "SUCCESS",
+                  "enum": [
+                    "SUCCESS",
+                    "PENDING",
+                    "FAILED"
+                  ]
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -3531,7 +3601,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ActionGetResponse"
+                "$ref": "#/definitions/ActionsGetResponse"
               }
             }
           },
@@ -3540,7 +3610,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ActionGetResponse"
+                "$ref": "#/definitions/ActionsGetResponse"
               }
             }
           },
@@ -3614,7 +3684,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ThingGetResponse"
+                "$ref": "#/definitions/ThingsGetResponse"
               }
             }
           },
@@ -3623,7 +3693,7 @@ func init() {
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ThingGetResponse"
+                "$ref": "#/definitions/ThingsGetResponse"
               }
             }
           },
@@ -5183,6 +5253,41 @@ func init() {
         }
       ]
     },
+    "ActionsGetResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Action"
+        },
+        {
+          "properties": {
+            "actionId": {
+              "description": "ID of the action.",
+              "type": "string",
+              "format": "uuid"
+            },
+            "result": {
+              "description": "results for this specific action.",
+              "format": "object",
+              "properties": {
+                "errors": {
+                  "$ref": "#/definitions/ErrorResponse"
+                },
+                "status": {
+                  "type": "string",
+                  "default": "SUCCESS",
+                  "enum": [
+                    "SUCCESS",
+                    "PENDING",
+                    "FAILED"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
     "ActionsListResponse": {
       "description": "List of actions.",
       "type": "object",
@@ -5720,6 +5825,41 @@ func init() {
         },
         {
           "type": "object"
+        }
+      ]
+    },
+    "ThingsGetResponse": {
+      "type": "object",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Thing"
+        },
+        {
+          "properties": {
+            "actionId": {
+              "description": "ID of the thing.",
+              "type": "string",
+              "format": "uuid"
+            },
+            "result": {
+              "description": "results for this specific thing.",
+              "format": "object",
+              "properties": {
+                "errors": {
+                  "$ref": "#/definitions/ErrorResponse"
+                },
+                "status": {
+                  "type": "string",
+                  "default": "SUCCESS",
+                  "enum": [
+                    "SUCCESS",
+                    "PENDING",
+                    "FAILED"
+                  ]
+                }
+              }
+            }
+          }
         }
       ]
     },

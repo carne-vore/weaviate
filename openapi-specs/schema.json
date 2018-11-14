@@ -79,6 +79,41 @@
       ],
       "type": "object"
     },
+    "ActionsGetResponse": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/Action"
+        },
+        {
+          "properties": {
+            "actionId": {
+              "description": "ID of the action.",
+              "format": "uuid",
+              "type": "string"
+            },
+            "result": {
+              "description": "results for this specific action.",
+              "format": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "default": "SUCCESS",
+                  "enum": [
+                    "SUCCESS",
+                    "PENDING",
+                    "FAILED"
+                  ]
+                },
+                "errors": {
+                  "$ref": "#/definitions/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "type": "object"
+    },
     "ActionHistory": {
       "properties": {
         "deleted": {
@@ -626,6 +661,41 @@
           "type": "object"
         }
       ]
+    },
+    "ThingsGetResponse": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/Thing"
+        },
+        {
+          "properties": {
+            "actionId": {
+              "description": "ID of the thing.",
+              "format": "uuid",
+              "type": "string"
+            },
+            "result": {
+              "description": "results for this specific thing.",
+              "format": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "default": "SUCCESS",
+                  "enum": [
+                    "SUCCESS",
+                    "PENDING",
+                    "FAILED"
+                  ]
+                },
+                "errors": {
+                  "$ref": "#/definitions/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "type": "object"
     },
     "ThingHistory": {
       "properties": {
@@ -1326,7 +1396,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ThingGetResponse"
+                "$ref": "#/definitions/ThingsGetResponse"
               }
             }
           },
@@ -1335,7 +1405,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ThingGetResponse"
+                "$ref": "#/definitions/ThingsGetResponse"
               }
             }
           },
@@ -1409,7 +1479,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ActionGetResponse"
+                "$ref": "#/definitions/ActionsGetResponse"
               }
             }
           },
@@ -1418,7 +1488,7 @@
             "schema": {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/ActionGetResponse"
+                "$ref": "#/definitions/ActionsGetResponse"
               }
             }
           },

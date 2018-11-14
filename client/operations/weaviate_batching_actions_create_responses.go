@@ -80,7 +80,7 @@ func NewWeaviateBatchingActionsCreateOK() *WeaviateBatchingActionsCreateOK {
 Actions created.
 */
 type WeaviateBatchingActionsCreateOK struct {
-	Payload []*models.ActionGetResponse
+	Payload []*models.ActionsGetResponse
 }
 
 func (o *WeaviateBatchingActionsCreateOK) Error() string {
@@ -107,7 +107,7 @@ func NewWeaviateBatchingActionsCreateAccepted() *WeaviateBatchingActionsCreateAc
 Successfully received.
 */
 type WeaviateBatchingActionsCreateAccepted struct {
-	Payload []*models.ActionGetResponse
+	Payload []*models.ActionsGetResponse
 }
 
 func (o *WeaviateBatchingActionsCreateAccepted) Error() string {
