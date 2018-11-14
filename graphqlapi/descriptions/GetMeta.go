@@ -39,6 +39,10 @@ const GetMetaPropertyDesc string = "Meta information about the property "
 
 const GetMetaClassPropertyTotalTrueDesc string = "How often this boolean property's value is true in the dataset"
 const GetMetaClassPropertyPercentageTrueDesc string = "The percentage of true values for this boolean property in the dataset"
+
+const GetMetaClassPropertyTotalFalseDesc string = "How often this boolean property's value is false in the dataset"
+const GetMetaClassPropertyPercentageFalseDesc string = "The percentage of false values for this boolean property in the dataset"
+
 const GetMetaClassPropertyPointingToDesc string = "The classes that this object contains a reference to"
 const GetMetaClassMetaCountDesc string = "The total amount of found instances for a class"
 const GetMetaClassMetaObjDesc string = "An object containing Meta information about a class"

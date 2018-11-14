@@ -452,6 +452,26 @@ func genMetaClassBooleanPropertyFields(class *models.SemanticSchemaClass, proper
 				return result, err
 			},
 		},
+
+		"totalFalse": &graphql.Field{
+			Name:        fmt.Sprintf("%s%s%s%s", "Meta", class.Class, property.Name, "TotalTrue"),
+			Description: descriptions.GetMetaClassPropertyTotalFalseDesc,
+			Type:        graphql.Int,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+
+		"percentageFalse": &graphql.Field{
+			Name:        fmt.Sprintf("%s%s%s%s", "Meta", class.Class, property.Name, "PercentageTrue"),
+			Description: descriptions.GetMetaClassPropertyPercentageFalseDesc,
+			Type:        graphql.Float,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
 	}
 
 	getMetaBooleanProperty := graphql.ObjectConfig{

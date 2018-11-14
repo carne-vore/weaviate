@@ -72,7 +72,7 @@ func genSingleNetworkMetaClassField(class *models.SemanticSchemaClass, descripti
 	singleClassPropertyFieldsObject := graphql.NewObject(singleClassPropertyFields)
 	singleClassPropertyFieldsField := &graphql.Field{
 		Type:        singleClassPropertyFieldsObject,
-		Description: class.Description,
+		Description: description,
 		Args: graphql.FieldConfigArgument{
 			"first": &graphql.ArgumentConfig{
 				Description: descriptions.FirstDesc,
@@ -446,6 +446,26 @@ func genNetworkMetaClassBooleanPropertyFields(class *models.SemanticSchemaClass,
 		"percentageTrue": &graphql.Field{
 			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "PercentageTrue"),
 			Description: descriptions.GetMetaClassPropertyPercentageTrueDesc,
+			Type:        graphql.Float,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+
+		"totalFalse": &graphql.Field{
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "TotalFalse"),
+			Description: descriptions.GetMetaClassPropertyTotalFalseDesc,
+			Type:        graphql.Int,
+			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
+				result, err := dbConnector.GetGraph(p)
+				return result, err
+			},
+		},
+
+		"percentageFalse": &graphql.Field{
+			Name:        fmt.Sprintf("%s%s%s%s%s", weaviate, "Meta", class.Class, property.Name, "PercentageFalse"),
+			Description: descriptions.GetMetaClassPropertyPercentageFalseDesc,
 			Type:        graphql.Float,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
