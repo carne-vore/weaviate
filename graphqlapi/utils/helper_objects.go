@@ -1,3 +1,17 @@
+/*                          _       _
+ *__      _____  __ ___   ___  __ _| |_ ___
+ *\ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+ * \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+ *  \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+ *
+ * Copyright © 2016 - 2018 Weaviate. All rights reserved.
+ * LICENSE: https://github.com/creativesoftwarefdn/weaviate/blob/develop/LICENSE.md
+ * AUTHOR: Bob van Luijt (bob@kub.design)
+ * See www.creativesoftwarefdn.org for details
+ * Contact: @CreativeSofwFdn / bob@kub.design
+ */
+
+// Package utils provides utility methods and classes to support the graphql endpoint for Weaviate
 package utils
 
 import (
@@ -14,8 +28,8 @@ type GraphQLNetworkFieldContents struct {
 
 // FilterContainer contains all objects regarding GraphQL filters. Some filter elements are declared as global variables in the prototype, this struct achieves the same goal.
 type FilterContainer struct {
-	WhereOperatorEnum                           *graphql.Enum // Object containing all fields for the Where filter
-	Operands                                    *graphql.InputObject
+	WhereOperatorEnum                           *graphql.Enum                   // Object containing all fields for the Where filter
+	Operands                                    *graphql.InputObject            // Object containing all Operands
 	LocalFilterOptions                          map[string]*graphql.InputObject // Object containing all fields for Local filters
 	NetworkFilterOptions                        map[string]*graphql.InputObject // Object containing all fields for Network filters
 	FetchThingsActionsWhereFilterArgConf        *graphql.ArgumentConfig         // Object containing the Where filter fields for Fetch Things and Actions

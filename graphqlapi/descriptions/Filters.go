@@ -1,3 +1,17 @@
+/*                          _       _
+ *__      _____  __ ___   ___  __ _| |_ ___
+ *\ \ /\ / / _ \/ _` \ \ / / |/ _` | __/ _ \
+ * \ V  V /  __/ (_| |\ V /| | (_| | ||  __/
+ *  \_/\_/ \___|\__,_| \_/ |_|\__,_|\__\___|
+ *
+ * Copyright © 2016 - 2018 Weaviate. All rights reserved.
+ * LICENSE: https://github.com/creativesoftwarefdn/weaviate/blob/develop/LICENSE.md
+ * AUTHOR: Bob van Luijt (bob@kub.design)
+ * See www.creativesoftwarefdn.org for details
+ * Contact: @CreativeSofwFdn / bob@kub.design
+ */
+
+// Package descriptions provides the descriptions as used by the graphql endpoint for Weaviate
 package descriptions
 
 import ()
@@ -33,7 +47,7 @@ const WherePropertiesDesc string = "Specify which properties to filter on"
 const WherePropertiesObjDesc string = "Specify which properties to filter on"
 
 const WherePropertiesPropertyNameDesc string = "Specify which property name to filter properties on"
-const WhereCertaintyDesc string = "The required degree of similarity between an object's characteristics and the provided filter values on a scale of 0-1"
+const WhereCertaintyDesc string = "Specify the required degree of similarity between an object's characteristics and the provided filter values on a scale of 0-1"
 const WhereNameDesc string = "Specify the name of the property to filter on"
 
 const WhereKeywordsDesc string = "Specify which keywords to filter on"
