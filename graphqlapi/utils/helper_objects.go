@@ -20,6 +20,6 @@ type FilterContainer struct {
 	NetworkFilterOptions                        map[string]*graphql.InputObject // Object containing all fields for Network filters
 	FetchThingsActionsWhereFilterArgConf        *graphql.ArgumentConfig         // Object containing the Where filter fields for Fetch Things and Actions
 	IntrospectThingsActionsWhereFilterArgConf   *graphql.ArgumentConfig         // Object containing the Where filter fields for Introspect Things and Actions
-	WeaviateNetworkWhereNameKeywordsInpObj      *graphql.InputObject            // Object containing a global filter element
+	WeaviateNetworkWhereKeywordsInpObj          *graphql.InputObject            // Object containing a global filter element
 	WeaviateNetworkIntrospectPropertiesObjField *graphql.Field                  // Object containing a global filter element
-} // TODO: rename localfilter to localgetandgetmetafilt... and networkfilteroptions to networkgetandgetmetafilteroptions
+}

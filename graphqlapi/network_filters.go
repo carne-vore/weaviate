@@ -15,6 +15,7 @@
 package graphqlapi
 
 import (
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/descriptions"
 	"github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
 	"github.com/graphql-go/graphql"
 )
@@ -25,7 +26,7 @@ func genNetworkFilterFields(filterContainer *utils.FilterContainer) graphql.Inpu
 	filterFields := graphql.InputObjectConfigFieldMap{
 		"operands": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(filterContainer.Operands),
-			Description: "Operands in the 'where' filter field, is a list of objects",
+			Description: descriptions.WhereOperandsInpObjDesc,
 		},
 	}
 
@@ -41,27 +42,27 @@ func genNetworkStaticWhereFilterElements(filterContainer *utils.FilterContainer)
 	staticFilterElements := graphql.InputObjectConfigFieldMap{
 		"operator": &graphql.InputObjectFieldConfig{
 			Type:        filterContainer.WhereOperatorEnum,
-			Description: "Operator in the 'where' filter field, value is one of the 'WhereOperatorEnum' object",
+			Description: descriptions.WhereOperatorDesc,
 		},
 		"path": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(graphql.String),
-			Description: "Path of from 'Things' or 'Actions' to the property name through the classes",
+			Description: descriptions.WherePathDesc,
 		},
 		"valueInt": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Int,
-			Description: "Integer value that the property at the provided path will be compared to by an operator",
+			Description: descriptions.WhereValueIntDesc,
 		},
 		"valueNumber": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Float,
-			Description: "Number value that the property at the provided path will be compared to by an operator",
+			Description: descriptions.WhereValueNumberDesc,
 		},
 		"valueBoolean": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Boolean,
-			Description: "Boolean value that the property at the provided path will be compared to by an operator",
+			Description: descriptions.WhereValueBooleanDesc,
 		},
 		"valueString": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "String value that the property at the provided path will be compared to by an operator",
+			Description: descriptions.WhereValueStringDesc,
 		},
 	}
 
@@ -73,7 +74,7 @@ func genNetworkOperandsObjectFields(filterContainer *utils.FilterContainer, stat
 
 	outputFieldConfigMap["operands"] = &graphql.InputObjectFieldConfig{
 		Type:        graphql.NewList(filterContainer.Operands),
-		Description: "Operands in the 'where' filter field, is a list of objects",
+		Description: descriptions.WhereOperandsInpObjDesc,
 	}
 
 	return outputFieldConfigMap
@@ -81,7 +82,7 @@ func genNetworkOperandsObjectFields(filterContainer *utils.FilterContainer, stat
 
 // This is an exact translation of the Prototype from JS to Go. In the prototype some filter elements are declared as global variables, this is recreated here.
 func genGlobalNetworkFilterElements(filterContainer *utils.FilterContainer) {
-	filterContainer.WeaviateNetworkWhereNameKeywordsInpObj = genWeaviateNetworkWhereNameKeywordsInpObj()
+	filterContainer.WeaviateNetworkWhereKeywordsInpObj = genWeaviateNetworkWhereNameKeywordsInpObj()
 	filterContainer.WeaviateNetworkIntrospectPropertiesObjField = genWeaviateNetworkIntrospectPropertiesObjField()
 }
 
@@ -92,14 +93,14 @@ func genWeaviateNetworkWhereNameKeywordsInpObj() *graphql.InputObject {
 			Fields: graphql.InputObjectConfigFieldMap{
 				"value": &graphql.InputObjectFieldConfig{
 					Type:        graphql.String,
-					Description: "",
+					Description: descriptions.WhereKeywordsValueDesc,
 				},
 				"weight": &graphql.InputObjectFieldConfig{
 					Type:        graphql.Float,
-					Description: "",
+					Description: descriptions.WhereKeywordsWeightDesc,
 				},
 			},
-			Description: "",
+			Description: descriptions.WhereKeywordsInpObjDesc,
 		},
 	)
 	return weaviateNetworkWhereNameKeywordsInpObj
@@ -112,20 +113,20 @@ func genWeaviateNetworkIntrospectPropertiesObjField() *graphql.Field {
 			Fields: graphql.Fields{
 				"propertyName": &graphql.Field{
 					Type:        graphql.String,
-					Description: "Which property name to filter properties on",
+					Description: descriptions.WherePropertiesPropertyNameDesc,
 				},
 				"certainty": &graphql.Field{
 					Type:        graphql.Float,
-					Description: "With which certainty 0-1 to filter properties on",
+					Description: descriptions.WhereCertaintyDesc,
 				},
 			},
-			Description: "which properties to filter on",
+			Description: descriptions.WherePropertiesObjDesc,
 		},
 	)
 
 	weaviateNetworkIntrospectPropertiesObjField := &graphql.Field{
 		Name:        "WeaviateNetworkIntrospectPropertiesObj",
-		Description: "Which properties to filter on",
+		Description: descriptions.WherePropertiesObjDesc,
 		Type:        graphql.NewList(weaviateNetworkIntrospectPropertiesObject),
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			result, err := dbConnector.GetGraph(p)
@@ -144,15 +145,15 @@ func genNetworkFetchThingsAndActionsFilterFields(filterContainer *utils.FilterCo
 	networkFetchThingsAndActionsFilterFields := graphql.InputObjectConfigFieldMap{
 		"class": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(networkFetchWhereInpObjClassInpObj),
-			Description: "",
+			Description: descriptions.WhereClassDesc,
 		},
 		"properties": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(networkFetchWhereInpObjPropertiesObj),
-			Description: "",
+			Description: descriptions.WherePropertiesDesc,
 		},
 		"first": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Int,
-			Description: "",
+			Description: descriptions.FirstDesc,
 		},
 	}
 
@@ -166,22 +167,22 @@ func genNetworkFetchWhereInpObjPropertiesObj(filterContainer *utils.FilterContai
 
 	filterPropertiesElements["certainty"] = &graphql.InputObjectFieldConfig{
 		Type:        graphql.Float,
-		Description: "",
+		Description: descriptions.WhereCertaintyDesc,
 	}
 	filterPropertiesElements["name"] = &graphql.InputObjectFieldConfig{
 		Type:        graphql.String,
-		Description: "",
+		Description: descriptions.WhereNameDesc,
 	}
 	filterPropertiesElements["keywords"] = &graphql.InputObjectFieldConfig{
 		Type:        graphql.NewList(genNetworkFetchWherePropertyWhereKeywordsInpObj()),
-		Description: "",
+		Description: descriptions.WhereKeywordsDesc,
 	}
 
 	networkFetchWhereInpObjPropertiesObj := graphql.NewInputObject(
 		graphql.InputObjectConfig{
 			Name:        "WeaviateNetworkFetchWhereInpObjProperties",
 			Fields:      filterPropertiesElements,
-			Description: "",
+			Description: descriptions.WherePropertiesDesc,
 		},
 	)
 
@@ -195,14 +196,14 @@ func genNetworkFetchWherePropertyWhereKeywordsInpObj() *graphql.InputObject {
 			Fields: graphql.InputObjectConfigFieldMap{
 				"value": &graphql.InputObjectFieldConfig{
 					Type:        graphql.String,
-					Description: "",
+					Description: descriptions.WhereKeywordsValueDesc,
 				},
 				"weight": &graphql.InputObjectFieldConfig{
 					Type:        graphql.Float,
-					Description: "",
+					Description: descriptions.WhereKeywordsWeightDesc,
 				},
 			},
-			Description: "",
+			Description: descriptions.WhereKeywordsInpObjDesc,
 		},
 	)
 	return outputObject
@@ -212,19 +213,19 @@ func genNetworkFetchWhereInpObjClassInpObj(filterContainer *utils.FilterContaine
 	filterClassElements := graphql.InputObjectConfigFieldMap{
 		"name": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "",
+			Description: descriptions.WhereNameDesc,
 		},
 		"certainty": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Float,
-			Description: "",
+			Description: descriptions.WhereCertaintyDesc,
 		},
 		"keywords": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewList(filterContainer.WeaviateNetworkWhereNameKeywordsInpObj),
-			Description: "",
+			Type:        graphql.NewList(filterContainer.WeaviateNetworkWhereKeywordsInpObj),
+			Description: descriptions.WhereKeywordsDesc,
 		},
 		"first": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Int,
-			Description: "",
+			Description: descriptions.FirstDesc,
 		},
 	}
 
@@ -232,7 +233,7 @@ func genNetworkFetchWhereInpObjClassInpObj(filterContainer *utils.FilterContaine
 		graphql.InputObjectConfig{
 			Name:        "WeaviateNetworkFetchWhereInpObjClassInpObj",
 			Fields:      filterClassElements,
-			Description: "",
+			Description: descriptions.WhereClassDesc,
 		},
 	)
 	return networkFetchWhereInpObjClassInpObj
@@ -245,11 +246,11 @@ func genNetworkIntrospectThingsAndActionsFilterFields(filterContainer *utils.Fil
 	networkIntrospectThingsAndActionsFilterFields := graphql.InputObjectConfigFieldMap{
 		"class": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(weaviateNetworkIntrospectWhereClassObj),
-			Description: "",
+			Description: descriptions.WhereClassDesc,
 		},
 		"properties": &graphql.InputObjectFieldConfig{
 			Type:        graphql.NewList(weaviateNetworkIntrospectWherePropertiesObj),
-			Description: "",
+			Description: descriptions.WherePropertiesDesc,
 		},
 	}
 
@@ -260,19 +261,19 @@ func genWeaviateNetworkIntrospectWherePropertiesObj(filterContainer *utils.Filte
 	filterPropertiesElements := graphql.InputObjectConfigFieldMap{
 		"first": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Int,
-			Description: "",
+			Description: descriptions.FirstDesc,
 		},
 		"certainty": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Float,
-			Description: "",
+			Description: descriptions.WhereCertaintyDesc,
 		},
 		"name": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "",
+			Description: descriptions.WhereNameDesc,
 		},
 		"keywords": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewList(filterContainer.WeaviateNetworkWhereNameKeywordsInpObj),
-			Description: "",
+			Type:        graphql.NewList(filterContainer.WeaviateNetworkWhereKeywordsInpObj),
+			Description: descriptions.WhereKeywordsDesc,
 		},
 	}
 
@@ -280,7 +281,7 @@ func genWeaviateNetworkIntrospectWherePropertiesObj(filterContainer *utils.Filte
 		graphql.InputObjectConfig{
 			Name:        "WeaviateNetworkIntrospectWherePropertiesObj",
 			Fields:      filterPropertiesElements,
-			Description: "",
+			Description: descriptions.WherePropertiesObjDesc,
 		},
 	)
 
@@ -291,19 +292,19 @@ func genWeaviateNetworkIntrospectWhereClassObj(filterContainer *utils.FilterCont
 	filterClassElements := graphql.InputObjectConfigFieldMap{
 		"name": &graphql.InputObjectFieldConfig{
 			Type:        graphql.String,
-			Description: "",
+			Description: descriptions.WhereNameDesc,
 		},
 		"certainty": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Float,
-			Description: "",
+			Description: descriptions.WhereCertaintyDesc,
 		},
 		"keywords": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewList(filterContainer.WeaviateNetworkWhereNameKeywordsInpObj),
-			Description: "",
+			Type:        graphql.NewList(filterContainer.WeaviateNetworkWhereKeywordsInpObj),
+			Description: descriptions.WhereKeywordsDesc,
 		},
 		"first": &graphql.InputObjectFieldConfig{
 			Type:        graphql.Int,
-			Description: "",
+			Description: descriptions.FirstDesc,
 		},
 	}
 
@@ -311,7 +312,7 @@ func genWeaviateNetworkIntrospectWhereClassObj(filterContainer *utils.FilterCont
 		graphql.InputObjectConfig{
 			Name:        "WeaviateNetworkIntrospectWhereClassObj",
 			Fields:      filterClassElements,
-			Description: "",
+			Description: descriptions.WherePropertiesObjDesc,
 		},
 	)
 	return weaviateNetworkIntrospectWhereClassObj

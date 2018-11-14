@@ -15,6 +15,7 @@
 package graphqlapi
 
 import (
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/descriptions"
 	"github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
 	"github.com/graphql-go/graphql"
 )
@@ -25,7 +26,7 @@ func genThingsAndActionsFieldsForWeaviateLocalGetObj(localGetActions *graphql.Ob
 
 		"Actions": &graphql.Field{
 			Name:        "WeaviateLocalGetActions",
-			Description: "Get Actions on the Local Weaviate",
+			Description: descriptions.LocalGetActionsDesc,
 			Type:        localGetActions,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
@@ -35,7 +36,7 @@ func genThingsAndActionsFieldsForWeaviateLocalGetObj(localGetActions *graphql.Ob
 
 		"Things": &graphql.Field{
 			Name:        "WeaviateLocalGetThings",
-			Description: "Get Things on the Local Weaviate",
+			Description: descriptions.LocalGetThingsDesc,
 			Type:        localGetThings,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
@@ -47,7 +48,7 @@ func genThingsAndActionsFieldsForWeaviateLocalGetObj(localGetActions *graphql.Ob
 	getThingsAndActionFieldsObject := graphql.ObjectConfig{
 		Name:        "WeaviateLocalGetObj",
 		Fields:      getThingsAndActionFields,
-		Description: "Type of Get function to get Things or Actions on the Local Weaviate",
+		Description: descriptions.LocalGetObjDesc,
 	}
 
 	return graphql.NewObject(getThingsAndActionFieldsObject)
@@ -58,7 +59,7 @@ func genThingsAndActionsFieldsForWeaviateLocalGetMetaObj(localGetMetaActions *gr
 
 		"Actions": &graphql.Field{
 			Name:        "WeaviateLocalGetMetaActions",
-			Description: "Get Meta information about Actions on the Local Weaviate",
+			Description: descriptions.LocalGetMetaActionsDesc,
 			Type:        localGetMetaActions,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
@@ -68,7 +69,7 @@ func genThingsAndActionsFieldsForWeaviateLocalGetMetaObj(localGetMetaActions *gr
 
 		"Things": &graphql.Field{
 			Name:        "WeaviateLocalGetMetaThings",
-			Description: "Get Meta information about Things on the Local Weaviate",
+			Description: descriptions.LocalGetMetaThingsDesc,
 			Type:        localGetMetaThings,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
@@ -80,7 +81,7 @@ func genThingsAndActionsFieldsForWeaviateLocalGetMetaObj(localGetMetaActions *gr
 	getMetaThingsAndActionFieldsObject := graphql.ObjectConfig{
 		Name:        "WeaviateLocalGetMetaObj",
 		Fields:      getMetaThingsAndActionFields,
-		Description: "Type of Get function to get meta information about Things or Actions on the Local Weaviate",
+		Description: descriptions.LocalGetMetaObjDesc,
 	}
 
 	return graphql.NewObject(getMetaThingsAndActionFieldsObject)
@@ -93,15 +94,15 @@ func genGetAndGetMetaFields(localGetObject *graphql.Object, localGetMetaObject *
 		"Get": &graphql.Field{
 			Name:        "WeaviateLocalGet",
 			Type:        localGetObject,
-			Description: "Get Things or Actions on the local weaviate",
+			Description: descriptions.LocalGetDesc,
 			Args: graphql.FieldConfigArgument{
 				"where": &graphql.ArgumentConfig{
-					Description: "Filter options for the Get search, to convert the data to the filter input",
+					Description: descriptions.LocalGetWhereDesc,
 					Type: graphql.NewInputObject(
 						graphql.InputObjectConfig{
 							Name:        "WeaviateLocalGetWhereInpObj",
 							Fields:      filterFields,
-							Description: "Filter options for the Get search, to convert the data to the filter input",
+							Description: descriptions.LocalGetWhereInpObjDesc,
 						},
 					),
 				},
@@ -115,15 +116,15 @@ func genGetAndGetMetaFields(localGetObject *graphql.Object, localGetMetaObject *
 		"GetMeta": &graphql.Field{
 			Name:        "WeaviateLocalGetMeta",
 			Type:        localGetMetaObject,
-			Description: "Query to Get Meta information about the data in the local Weaviate instance",
+			Description: descriptions.LocalGetMetaDesc,
 			Args: graphql.FieldConfigArgument{
 				"where": &graphql.ArgumentConfig{
-					Description: "Filter options for the GetMeta search, to convert the data to the filter input",
+					Description: descriptions.LocalGetMetaWhereDesc,
 					Type: graphql.NewInputObject(
 						graphql.InputObjectConfig{
 							Name:        "WeaviateLocalGetMetaWhereInpObj",
 							Fields:      filterFields,
-							Description: "Filter options for the GetMeta search, to convert the data to the filter input",
+							Description: descriptions.LocalGetMetaWhereInpObjDesc,
 						},
 					),
 				},
@@ -138,7 +139,7 @@ func genGetAndGetMetaFields(localGetObject *graphql.Object, localGetMetaObject *
 	weaviateLocalObject := &graphql.ObjectConfig{
 		Name:        "WeaviateLocalObj",
 		Fields:      getAndGetMetaFields,
-		Description: "Type of query on the local Weaviate",
+		Description: descriptions.LocalObjDesc,
 	}
 
 	return graphql.NewObject(*weaviateLocalObject)

@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/descriptions"
 	"github.com/creativesoftwarefdn/weaviate/models"
 	"github.com/creativesoftwarefdn/weaviate/schema"
 	"github.com/graphql-go/graphql"
@@ -37,7 +38,7 @@ func genActionClassFieldsFromSchema(g *GraphQL, getActionsAndThings *map[string]
 	localGetActions := graphql.ObjectConfig{
 		Name:        "WeaviateLocalGetActionsObj",
 		Fields:      actionClassFields,
-		Description: "Type of Actions i.e. Actions classes to Get on the Local Weaviate",
+		Description: descriptions.LocalGetActionsObjDesc,
 	}
 
 	return graphql.NewObject(localGetActions), nil
@@ -65,11 +66,11 @@ func genSingleActionClassField(class *models.SemanticSchemaClass, getActionsAndT
 		Description: class.Description,
 		Args: graphql.FieldConfigArgument{
 			"first": &graphql.ArgumentConfig{
-				Description: "Pagination option, show the first x results",
+				Description: descriptions.FirstDesc,
 				Type:        graphql.Int,
 			},
 			"after": &graphql.ArgumentConfig{
-				Description: "Pagination option, show the results after the first x results",
+				Description: descriptions.AfterDesc,
 				Type:        graphql.Int,
 			},
 		},
@@ -137,7 +138,7 @@ func genSingleActionClassPropertyFields(class *models.SemanticSchemaClass, getAc
 	}
 
 	singleActionClassPropertyFields["uuid"] = &graphql.Field{
-		Description: "UUID of the thing or action given by the local Weaviate instance",
+		Description: descriptions.LocalGetClassUUIDDesc,
 		Type:        graphql.String,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			result, err := dbConnector.GetGraph(p)
@@ -162,7 +163,7 @@ func genThingClassFieldsFromSchema(g *GraphQL, getActionsAndThings *map[string]*
 	localGetThings := graphql.ObjectConfig{
 		Name:        "WeaviateLocalGetThingsObj",
 		Fields:      thingClassFields,
-		Description: "Type of Things i.e. Things classes to Get on the Local Weaviate",
+		Description: descriptions.LocalGetThingsObjDesc,
 	}
 
 	return graphql.NewObject(localGetThings), nil
@@ -187,11 +188,11 @@ func genSingleThingClassField(class *models.SemanticSchemaClass, getActionsAndTh
 		Description: class.Description,
 		Args: graphql.FieldConfigArgument{
 			"first": &graphql.ArgumentConfig{
-				Description: "Pagination option, show the first x results",
+				Description: descriptions.FirstDesc,
 				Type:        graphql.Int,
 			},
 			"after": &graphql.ArgumentConfig{
-				Description: "Pagination option, show the results after the first x results",
+				Description: descriptions.AfterDesc,
 				Type:        graphql.Int,
 			},
 		},
@@ -260,7 +261,7 @@ func genSingleThingClassPropertyFields(class *models.SemanticSchemaClass, getAct
 	}
 
 	singleThingClassPropertyFields["uuid"] = &graphql.Field{
-		Description: "UUID of the thing or action given by the local Weaviate instance",
+		Description: descriptions.LocalGetClassUUIDDesc,
 		Type:        graphql.String,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			result, err := dbConnector.GetGraph(p)

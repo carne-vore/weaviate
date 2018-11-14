@@ -18,7 +18,8 @@ import (
 	"fmt"
 
 	dbconnector "github.com/creativesoftwarefdn/weaviate/connectors"
-	utils "github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/descriptions"
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
 	"github.com/graphql-go/graphql"
 )
 
@@ -38,7 +39,7 @@ func (g *GraphQL) buildGraphqlSchema() error {
 	schemaObject := graphql.ObjectConfig{
 		Name:        "WeaviateObj",
 		Fields:      rootFieldsObject,
-		Description: "Location of the root query",
+		Description: descriptions.WeaviateObjDesc,
 	}
 
 	// Run grahpql.NewSchema in a sub-closure, so that we can recover from panics.
@@ -130,7 +131,7 @@ func assembleLocalSchema(g *GraphQL, filterContainer *utils.FilterContainer) (*g
 
 	localField := &graphql.Field{
 		Type:        localGetAndGetMetaObject,
-		Description: "Query a local Weaviate instance",
+		Description: WeaviateLocalDesc,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			result, err := dbConnector.GetGraph(p)
 			return result, err
@@ -208,10 +209,10 @@ func assembleNetworkSchema(g *GraphQL, filterContainer *utils.FilterContainer) (
 
 	networkField := &graphql.Field{
 		Type:        networkGetAndGetMetaObject,
-		Description: "Query a Weaviate network",
+		Description: WeaviateNetworkDesc,
 		Args: graphql.FieldConfigArgument{
 			"networkTimeout": &graphql.ArgumentConfig{
-				Description: "The max time to request an answer from the network. It is the time in seconds",
+				Description: descriptions.NetworkTimeoutDesc,
 				Type:        graphql.Int,
 			},
 		},

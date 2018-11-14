@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/descriptions"
 	"github.com/creativesoftwarefdn/weaviate/models"
 	"github.com/creativesoftwarefdn/weaviate/schema"
 	"github.com/graphql-go/graphql"
@@ -37,7 +38,7 @@ func genNetworkActionClassFieldsFromSchema(g *GraphQL, networkGetActionsAndThing
 	networkGetActions := graphql.ObjectConfig{
 		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGet", weaviate, "ActionsObj"),
 		Fields:      actionClassFields,
-		Description: "Type of Actions i.e. Actions classes to Get from the Network",
+		Description: descriptions.NetworkGetWeaviateActionsObjDesc,
 	}
 
 	return graphql.NewObject(networkGetActions), nil
@@ -65,11 +66,11 @@ func genSingleNetworkActionClassField(class *models.SemanticSchemaClass, network
 		Description: class.Description,
 		Args: graphql.FieldConfigArgument{
 			"first": &graphql.ArgumentConfig{
-				Description: "Pagination option, show the first x results",
+				Description: descriptions.FirstDesc,
 				Type:        graphql.Int,
 			},
 			"after": &graphql.ArgumentConfig{
-				Description: "Pagination option, show the results after the first x results",
+				Description: descriptions.AfterDesc,
 				Type:        graphql.Int,
 			},
 		},
@@ -137,7 +138,7 @@ func genSingleNetworkActionClassPropertyFields(class *models.SemanticSchemaClass
 	}
 
 	singleNetworkActionClassPropertyFields["uuid"] = &graphql.Field{
-		Description: "UUID of the thing or action given by the Weaviate network",
+		Description: descriptions.NetworkGetClassUUIDDesc,
 		Type:        graphql.String,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			result, err := dbConnector.GetGraph(p)
@@ -162,7 +163,7 @@ func genNetworkThingClassFieldsFromSchema(g *GraphQL, getNetworkActionsAndThings
 	networkGetThings := graphql.ObjectConfig{
 		Name:        fmt.Sprintf("%s%s%s", "WeaviateNetworkGet", weaviate, "ThingsObj"),
 		Fields:      thingClassFields,
-		Description: "Type of Things i.e. Things classes to Get from the Network",
+		Description: descriptions.NetworkGetWeaviateThingsObjDesc,
 	}
 
 	return graphql.NewObject(networkGetThings), nil
@@ -187,11 +188,11 @@ func genSingleNetworkThingClassField(class *models.SemanticSchemaClass, getActio
 		Description: class.Description,
 		Args: graphql.FieldConfigArgument{
 			"first": &graphql.ArgumentConfig{
-				Description: "Pagination option, show the first x results",
+				Description: descriptions.FirstDesc,
 				Type:        graphql.Int,
 			},
 			"after": &graphql.ArgumentConfig{
-				Description: "Pagination option, show the results after the first x results",
+				Description: descriptions.AfterDesc,
 				Type:        graphql.Int,
 			},
 		},
@@ -260,7 +261,7 @@ func genSingleNetworkThingClassPropertyFields(class *models.SemanticSchemaClass,
 	}
 
 	singleThingClassPropertyFields["uuid"] = &graphql.Field{
-		Description: "UUID of the thing or action given by the Weaviate network",
+		Description: descriptions.NetworkGetClassUUIDDesc,
 		Type:        graphql.String,
 		Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 			result, err := dbConnector.GetGraph(p)
@@ -316,7 +317,7 @@ func handleNetworkGetNonObjectDataTypes(dataType schema.DataType, property *mode
 	case schema.DataTypeDate:
 		return &graphql.Field{
 			Description: property.Description,
-			Type:        graphql.String, // String since no graphql date datatype exists
+			Type:        graphql.String,
 			Resolve: func(p graphql.ResolveParams) (interface{}, error) {
 				result, err := dbConnector.GetGraph(p)
 				return result, err

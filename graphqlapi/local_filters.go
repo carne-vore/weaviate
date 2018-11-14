@@ -15,9 +15,59 @@
 package graphqlapi
 
 import (
+	"github.com/creativesoftwarefdn/weaviate/graphqlapi/descriptions"
 	"github.com/creativesoftwarefdn/weaviate/graphqlapi/utils"
 	"github.com/graphql-go/graphql"
 )
+
+func genFilterFields(filterContainer *utils.FilterContainer) graphql.InputObjectConfigFieldMap {
+	staticFilterElements := genStaticWhereFilterElements(filterContainer)
+
+	filterFields := graphql.InputObjectConfigFieldMap{
+		"operands": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewList(genOperandsObject(filterContainer, staticFilterElements)),
+			Description: descriptions.WhereOperandsDesc,
+		},
+	}
+
+	for key, value := range staticFilterElements {
+		filterFields[key] = value
+	}
+
+	return filterFields
+}
+
+// generate these elements once
+func genStaticWhereFilterElements(filterContainer *utils.FilterContainer) graphql.InputObjectConfigFieldMap {
+	staticFilterElements := graphql.InputObjectConfigFieldMap{
+		"operator": &graphql.InputObjectFieldConfig{
+			Type:        filterContainer.WhereOperatorEnum,
+			Description: descriptions.WhereOperatorDesc,
+		},
+		"path": &graphql.InputObjectFieldConfig{
+			Type:        graphql.NewList(graphql.String),
+			Description: descriptions.WherePathDesc,
+		},
+		"valueInt": &graphql.InputObjectFieldConfig{
+			Type:        graphql.Int,
+			Description: descriptions.WhereValueIntDesc,
+		},
+		"valueNumber": &graphql.InputObjectFieldConfig{
+			Type:        graphql.Float,
+			Description: descriptions.WhereValueNumberDesc,
+		},
+		"valueBoolean": &graphql.InputObjectFieldConfig{
+			Type:        graphql.Boolean,
+			Description: descriptions.WhereValueBooleanDesc,
+		},
+		"valueString": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: descriptions.WhereValueStringDesc,
+		},
+	}
+
+	return staticFilterElements
+}
 
 func genOperatorObject() *graphql.Enum {
 	enumFilterOptionsMap := graphql.EnumValueConfigMap{
@@ -35,59 +85,10 @@ func genOperatorObject() *graphql.Enum {
 	enumFilterOptionsConf := graphql.EnumConfig{
 		Name:        "WhereOperatorEnum",
 		Values:      enumFilterOptionsMap,
-		Description: "Enumeration object for the 'where' filter",
+		Description: descriptions.WhereOperatorEnumDesc,
 	}
 
 	return graphql.NewEnum(enumFilterOptionsConf)
-}
-
-func genFilterFields(filterContainer *utils.FilterContainer) graphql.InputObjectConfigFieldMap {
-	staticFilterElements := genStaticWhereFilterElements(filterContainer)
-
-	filterFields := graphql.InputObjectConfigFieldMap{
-		"operands": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewList(genOperandsObject(filterContainer, staticFilterElements)),
-			Description: "Operands in the 'where' filter field, is a list of objects",
-		},
-	}
-
-	for key, value := range staticFilterElements {
-		filterFields[key] = value
-	}
-
-	return filterFields
-}
-
-// generate these elements once
-func genStaticWhereFilterElements(filterContainer *utils.FilterContainer) graphql.InputObjectConfigFieldMap {
-	staticFilterElements := graphql.InputObjectConfigFieldMap{
-		"operator": &graphql.InputObjectFieldConfig{
-			Type:        filterContainer.WhereOperatorEnum,
-			Description: "Operator in the 'where' filter field, value is one of the 'WhereOperatorEnum' object",
-		},
-		"path": &graphql.InputObjectFieldConfig{
-			Type:        graphql.NewList(graphql.String),
-			Description: "Path of from 'Things' or 'Actions' to the property name through the classes",
-		},
-		"valueInt": &graphql.InputObjectFieldConfig{
-			Type:        graphql.Int,
-			Description: "Integer value that the property at the provided path will be compared to by an operator",
-		},
-		"valueNumber": &graphql.InputObjectFieldConfig{
-			Type:        graphql.Float,
-			Description: "Number value that the property at the provided path will be compared to by an operator",
-		},
-		"valueBoolean": &graphql.InputObjectFieldConfig{
-			Type:        graphql.Boolean,
-			Description: "Boolean value that the property at the provided path will be compared to by an operator",
-		},
-		"valueString": &graphql.InputObjectFieldConfig{
-			Type:        graphql.String,
-			Description: "String value that the property at the provided path will be compared to by an operator",
-		},
-	}
-
-	return staticFilterElements
 }
 
 // use a thunk to avoid a cyclical relationship (filters refer to filters refer to .... ad infinitum)
@@ -99,7 +100,7 @@ func genOperandsObject(filterContainer *utils.FilterContainer, staticFilterEleme
 				filterFields := genOperandsObjectFields(filterContainer, staticFilterElements)
 				return filterFields
 			}),
-			Description: "Operands in the 'where' filter field, is a list of objects",
+			Description: descriptions.WhereOperandsInpObjDesc,
 		},
 	)
 
@@ -113,8 +114,48 @@ func genOperandsObjectFields(filterContainer *utils.FilterContainer, staticFilte
 
 	outputFieldConfigMap["operands"] = &graphql.InputObjectFieldConfig{
 		Type:        graphql.NewList(filterContainer.Operands),
-		Description: "Operands in the 'where' filter field, is a list of objects",
+		Description: descriptions.WhereOperandsInpObjDesc,
 	}
 
 	return outputFieldConfigMap
+}
+
+// generate the GroupBy filter fields
+func genGroupByFilterFields() graphql.InputObjectConfigFieldMap {
+	groupByFilterFields := graphql.InputObjectConfigFieldMap{
+		"group": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: descriptions.GroupByGroupDesc,
+		},
+		"count": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: descriptions.GroupByCountDesc,
+		},
+		"sum": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: descriptions.GroupBySumDesc,
+		},
+		"min": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: descriptions.GroupByMinDesc,
+		},
+		"max": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: descriptions.GroupByMaxDesc,
+		},
+		"mean": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: descriptions.GroupByMeanDesc,
+		},
+		"median": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: descriptions.GroupByMedianDesc,
+		},
+		"mode": &graphql.InputObjectFieldConfig{
+			Type:        graphql.String,
+			Description: descriptions.GroupByModeDesc,
+		},
+	}
+
+	return groupByFilterFields
 }
