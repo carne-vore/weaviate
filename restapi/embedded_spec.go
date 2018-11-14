@@ -48,7 +48,7 @@ func init() {
       "url": "https://github.com/creativesoftwarefdn",
       "email": "hello@creativesoftwarefdn.org"
     },
-    "version": "0.9.4"
+    "version": "0.10.1"
   },
   "basePath": "/weaviate/v1",
   "paths": {
@@ -556,6 +556,172 @@ func init() {
           },
           "404": {
             "description": "Successful query result but no resource was found.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-available-in-mqtt": false,
+        "x-available-in-websocket": false
+      }
+    },
+    "/batching/actions": {
+      "post": {
+        "description": "Registers new actions as bulk. Given meta-data and schema values are validated.",
+        "tags": [
+          "batching",
+          "actions"
+        ],
+        "summary": "Creates new actions based on a thing template related to this key as a batch.",
+        "operationId": "weaviate.batching.actions.create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "async": {
+                  "description": "If ` + "`" + `async` + "`" + ` is true, return a 202 with the new ID of the Thing. You will receive this response before the data is persisted. If ` + "`" + `async` + "`" + ` is false, you will receive confirmation after the value is persisted. The value of ` + "`" + `async` + "`" + ` defaults to false.",
+                  "type": "boolean"
+                },
+                "fields": {
+                  "description": "Define which fields need to be returned. Default value is ALL",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "default": "ALL",
+                    "enum": [
+                      "ALL",
+                      "@class",
+                      "schema",
+                      "key",
+                      "thingId",
+                      "creationTimeUnix"
+                    ]
+                  }
+                },
+                "things": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ActionCreate"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Actions created.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActionGetResponse"
+              }
+            }
+          },
+          "202": {
+            "description": "Successfully received.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActionGetResponse"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "The used API-key has insufficient permissions."
+          },
+          "422": {
+            "description": "Request body contains well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file?",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-available-in-mqtt": false,
+        "x-available-in-websocket": false
+      }
+    },
+    "/batching/things": {
+      "post": {
+        "description": "Registers new things as bulk. Given meta-data and schema values are validated.",
+        "tags": [
+          "batching",
+          "things"
+        ],
+        "summary": "Creates new things based on a thing template related to this key as a batch.",
+        "operationId": "weaviate.batching.things.create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "async": {
+                  "description": "If ` + "`" + `async` + "`" + ` is true, return a 202 with the new ID of the Thing. You will receive this response before the data is persisted. If ` + "`" + `async` + "`" + ` is false, you will receive confirmation after the value is persisted. The value of ` + "`" + `async` + "`" + ` defaults to false.",
+                  "type": "boolean"
+                },
+                "fields": {
+                  "description": "Define which fields need to be returned. Default value is ALL",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "default": "ALL",
+                    "enum": [
+                      "ALL",
+                      "@class",
+                      "schema",
+                      "key",
+                      "thingId",
+                      "creationTimeUnix"
+                    ]
+                  }
+                },
+                "things": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ThingCreate"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Things created.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ThingGetResponse"
+              }
+            }
+          },
+          "202": {
+            "description": "Successfully received.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ThingGetResponse"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "The used API-key has insufficient permissions."
+          },
+          "422": {
+            "description": "Request body contains well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file?",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -2732,21 +2898,31 @@ func init() {
   ],
   "tags": [
     {
+      "description": "These operations allow to create, update and delete actions.",
       "name": "actions"
     },
     {
+      "description": "These operations allow to execute batch requests for things and actions. Mostly used for importing large datasets.",
+      "name": "batching"
+    },
+    {
+      "description": "This opperation is reserved for GraphQL.",
       "name": "graphql"
     },
     {
+      "description": "These operations allow to create, update and delete keys.",
       "name": "keys"
     },
     {
+      "description": "These operations give meta insights about the Weaviate instance.",
       "name": "meta"
     },
     {
+      "description": "These operations are reserved for Weaviates peer-to-peer (P2P) functionality.",
       "name": "P2P"
     },
     {
+      "description": "These operations allow to create, update and delete things.",
       "name": "things"
     },
     {
@@ -2777,7 +2953,7 @@ func init() {
       "url": "https://github.com/creativesoftwarefdn",
       "email": "hello@creativesoftwarefdn.org"
     },
-    "version": "0.9.4"
+    "version": "0.10.1"
   },
   "basePath": "/weaviate/v1",
   "paths": {
@@ -3293,6 +3469,172 @@ func init() {
           },
           "404": {
             "description": "Successful query result but no resource was found.",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-available-in-mqtt": false,
+        "x-available-in-websocket": false
+      }
+    },
+    "/batching/actions": {
+      "post": {
+        "description": "Registers new actions as bulk. Given meta-data and schema values are validated.",
+        "tags": [
+          "batching",
+          "actions"
+        ],
+        "summary": "Creates new actions based on a thing template related to this key as a batch.",
+        "operationId": "weaviate.batching.actions.create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "async": {
+                  "description": "If ` + "`" + `async` + "`" + ` is true, return a 202 with the new ID of the Thing. You will receive this response before the data is persisted. If ` + "`" + `async` + "`" + ` is false, you will receive confirmation after the value is persisted. The value of ` + "`" + `async` + "`" + ` defaults to false.",
+                  "type": "boolean"
+                },
+                "fields": {
+                  "description": "Define which fields need to be returned. Default value is ALL",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "default": "ALL",
+                    "enum": [
+                      "ALL",
+                      "@class",
+                      "schema",
+                      "key",
+                      "thingId",
+                      "creationTimeUnix"
+                    ]
+                  }
+                },
+                "things": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ActionCreate"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Actions created.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActionGetResponse"
+              }
+            }
+          },
+          "202": {
+            "description": "Successfully received.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActionGetResponse"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "The used API-key has insufficient permissions."
+          },
+          "422": {
+            "description": "Request body contains well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file?",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "x-available-in-mqtt": false,
+        "x-available-in-websocket": false
+      }
+    },
+    "/batching/things": {
+      "post": {
+        "description": "Registers new things as bulk. Given meta-data and schema values are validated.",
+        "tags": [
+          "batching",
+          "things"
+        ],
+        "summary": "Creates new things based on a thing template related to this key as a batch.",
+        "operationId": "weaviate.batching.things.create",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "async": {
+                  "description": "If ` + "`" + `async` + "`" + ` is true, return a 202 with the new ID of the Thing. You will receive this response before the data is persisted. If ` + "`" + `async` + "`" + ` is false, you will receive confirmation after the value is persisted. The value of ` + "`" + `async` + "`" + ` defaults to false.",
+                  "type": "boolean"
+                },
+                "fields": {
+                  "description": "Define which fields need to be returned. Default value is ALL",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "default": "ALL",
+                    "enum": [
+                      "ALL",
+                      "@class",
+                      "schema",
+                      "key",
+                      "thingId",
+                      "creationTimeUnix"
+                    ]
+                  }
+                },
+                "things": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ThingCreate"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Things created.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ThingGetResponse"
+              }
+            }
+          },
+          "202": {
+            "description": "Successfully received.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ThingGetResponse"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "The used API-key has insufficient permissions."
+          },
+          "422": {
+            "description": "Request body contains well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file?",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -5477,21 +5819,31 @@ func init() {
   ],
   "tags": [
     {
+      "description": "These operations allow to create, update and delete actions.",
       "name": "actions"
     },
     {
+      "description": "These operations allow to execute batch requests for things and actions. Mostly used for importing large datasets.",
+      "name": "batching"
+    },
+    {
+      "description": "This opperation is reserved for GraphQL.",
       "name": "graphql"
     },
     {
+      "description": "These operations allow to create, update and delete keys.",
       "name": "keys"
     },
     {
+      "description": "These operations give meta insights about the Weaviate instance.",
       "name": "meta"
     },
     {
+      "description": "These operations are reserved for Weaviates peer-to-peer (P2P) functionality.",
       "name": "P2P"
     },
     {
+      "description": "These operations allow to create, update and delete things.",
       "name": "things"
     },
     {

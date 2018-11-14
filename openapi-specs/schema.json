@@ -159,13 +159,13 @@
             "properties": {
               "message": {
                 "type": "string"
-              }    
-            },   
+              }
+            },
             "type": "object"
-          },   
+          },
           "type": "array"
-        }    
-      },   
+        }
+      },
       "type": "object"
     },
     "GraphQLError": {
@@ -744,7 +744,7 @@
     },
     "description": "Decentralised Knowledge Graph",
     "title": "Weaviate - Decentralised Knowledge Graph",
-    "version": "0.10.0"
+    "version": "0.10.1"
   },
   "parameters": {
     "CommonMaxResultsParameterQuery": {
@@ -1278,6 +1278,172 @@
         "x-available-in-websocket": false
       }
     },
+    "/batching/things": {
+      "post": {
+        "description": "Registers new things as bulk. Given meta-data and schema values are validated.",
+        "operationId": "weaviate.batching.things.create",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "async": {
+                  "type": "boolean",
+                  "description": "If `async` is true, return a 202 with the new ID of the Thing. You will receive this response before the data is persisted. If `async` is false, you will receive confirmation after the value is persisted. The value of `async` defaults to false."
+                },
+                "fields": {
+                  "description": "Define which fields need to be returned. Default value is ALL",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "default": "ALL",
+                    "enum": [
+                      "ALL",
+                      "@class",
+                      "schema",
+                      "key",
+                      "thingId",
+                      "creationTimeUnix"
+                    ]
+                  }
+                },
+                "things": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ThingCreate"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Things created.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ThingGetResponse"
+              }
+            }
+          },
+          "202": {
+            "description": "Successfully received.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ThingGetResponse"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "The used API-key has insufficient permissions."
+          },
+          "422": {
+            "description": "Request body contains well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file?",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "summary": "Creates new things based on a thing template related to this key as a batch.",
+        "tags": [
+          "batching",
+          "things"
+        ],
+        "x-available-in-mqtt": false,
+        "x-available-in-websocket": false
+      }
+    },
+    "/batching/actions": {
+      "post": {
+        "description": "Registers new actions as bulk. Given meta-data and schema values are validated.",
+        "operationId": "weaviate.batching.actions.create",
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "async": {
+                  "type": "boolean",
+                  "description": "If `async` is true, return a 202 with the new ID of the Thing. You will receive this response before the data is persisted. If `async` is false, you will receive confirmation after the value is persisted. The value of `async` defaults to false."
+                },
+                "fields": {
+                  "description": "Define which fields need to be returned. Default value is ALL",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "default": "ALL",
+                    "enum": [
+                      "ALL",
+                      "@class",
+                      "schema",
+                      "key",
+                      "thingId",
+                      "creationTimeUnix"
+                    ]
+                  }
+                },
+                "things": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ActionCreate"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Actions created.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActionGetResponse"
+              }
+            }
+          },
+          "202": {
+            "description": "Successfully received.",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ActionGetResponse"
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
+          },
+          "403": {
+            "description": "The used API-key has insufficient permissions."
+          },
+          "422": {
+            "description": "Request body contains well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file?",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        },
+        "summary": "Creates new actions based on a thing template related to this key as a batch.",
+        "tags": [
+          "batching",
+          "actions"
+        ],
+        "x-available-in-mqtt": false,
+        "x-available-in-websocket": false
+      }
+    },
     "/graphql": {
       "post": {
         "description": "Get an object based on GraphQL",
@@ -1653,7 +1819,9 @@
       "get": {
         "summary": "Dump the current the database schema",
         "operationId": "weaviate.schema.dump",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "responses": {
           "200": {
             "description": "Successfully dumped the database schema.",
@@ -1679,7 +1847,9 @@
       "post": {
         "summary": "Create a new Action class in the ontology.",
         "operationId": "weaviate.schema.actions.create",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "actionClass",
@@ -1710,7 +1880,9 @@
       "delete": {
         "summary": "Remove a Action class (and all data in the instances) from the ontology",
         "operationId": "weaviate.schema.actions.delete",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "className",
@@ -1723,28 +1895,31 @@
           "200": {
             "description": "Removed the Action class from the ontology."
           },
-          "401": {
-            "description": "Unauthorized or invalid credentials."
-          },
           "400": {
             "description": "Could not delete the Action class",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
           }
         }
       },
       "put": {
         "summary": "Rename, or replace the keywords of the Action",
         "operationId": "weaviate.schema.actions.update",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "className",
             "in": "path",
             "required": true,
             "type": "string"
-          }, {
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -1785,14 +1960,17 @@
       "post": {
         "summary": "Add a property to a Action class",
         "operationId": "weaviate.schema.actions.properties.add",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "className",
             "in": "path",
             "required": true,
             "type": "string"
-          }, {
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -1824,14 +2002,17 @@
       "delete": {
         "summary": "Remove a property from a Action class",
         "operationId": "weaviate.schema.actions.properties.delete",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "className",
             "in": "path",
             "required": true,
             "type": "string"
-          }, {
+          },
+          {
             "name": "propertyName",
             "in": "path",
             "required": true,
@@ -1853,19 +2034,23 @@
       "put": {
         "summary": "Rename, or replace the keywords of the property",
         "operationId": "weaviate.schema.actions.properties.update",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "className",
             "in": "path",
             "required": true,
             "type": "string"
-          }, {
+          },
+          {
             "name": "propertyName",
             "in": "path",
             "required": true,
             "type": "string"
-          }, {
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -1906,7 +2091,9 @@
       "post": {
         "summary": "Create a new Thing class in the ontology.",
         "operationId": "weaviate.schema.things.create",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "thingClass",
@@ -1937,7 +2124,9 @@
       "delete": {
         "summary": "Remove a Thing class (and all data in the instances) from the ontology",
         "operationId": "weaviate.schema.things.delete",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "className",
@@ -1950,28 +2139,31 @@
           "200": {
             "description": "Removed the Thing class from the ontology."
           },
-          "401": {
-            "description": "Unauthorized or invalid credentials."
-          },
           "400": {
             "description": "Could not delete the Thing class",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
+          },
+          "401": {
+            "description": "Unauthorized or invalid credentials."
           }
         }
       },
       "put": {
         "summary": "Rename, or replace the keywords of the Thing",
         "operationId": "weaviate.schema.things.update",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "className",
             "in": "path",
             "required": true,
             "type": "string"
-          }, {
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -2012,14 +2204,17 @@
       "post": {
         "summary": "Add a property to a Thing class",
         "operationId": "weaviate.schema.things.properties.add",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "className",
             "in": "path",
             "required": true,
             "type": "string"
-          }, {
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -2051,14 +2246,17 @@
       "delete": {
         "summary": "Remove a property from a Thing class",
         "operationId": "weaviate.schema.things.properties.delete",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "className",
             "in": "path",
             "required": true,
             "type": "string"
-          }, {
+          },
+          {
             "name": "propertyName",
             "in": "path",
             "required": true,
@@ -2080,19 +2278,23 @@
       "put": {
         "summary": "Rename, or replace the keywords of the property",
         "operationId": "weaviate.schema.things.properties.update",
-        "tags": [ "schema" ],
+        "tags": [
+          "schema"
+        ],
         "parameters": [
           {
             "name": "className",
             "in": "path",
             "required": true,
             "type": "string"
-          }, {
+          },
+          {
             "name": "propertyName",
             "in": "path",
             "required": true,
             "type": "string"
-          }, {
+          },
+          {
             "name": "body",
             "in": "body",
             "required": true,
@@ -2670,22 +2872,32 @@
   "swagger": "2.0",
   "tags": [
     {
-      "name": "actions"
+      "name": "actions",
+      "description": "These operations allow to create, update and delete actions."
     },
     {
-      "name": "graphql"
+      "name": "batching",
+      "description": "These operations allow to execute batch requests for things and actions. Mostly used for importing large datasets."
     },
     {
-      "name": "keys"
+      "name": "graphql",
+      "description": "This opperation is reserved for GraphQL."
     },
     {
-      "name": "meta"
+      "name": "keys",
+      "description": "These operations allow to create, update and delete keys."
     },
     {
-      "name": "P2P"
+      "name": "meta",
+      "description": "These operations give meta insights about the Weaviate instance."
     },
     {
-      "name": "things"
+      "name": "P2P",
+      "description": "These operations are reserved for Weaviates peer-to-peer (P2P) functionality."
+    },
+    {
+      "name": "things",
+      "description": "These operations allow to create, update and delete things."
     },
     {
       "name": "schema",

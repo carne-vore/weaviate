@@ -90,6 +90,12 @@ func NewWeaviateAPI(spec *loads.Document) *WeaviateAPI {
 		ActionsWeaviateActionsValidateHandler: actions.WeaviateActionsValidateHandlerFunc(func(params actions.WeaviateActionsValidateParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation ActionsWeaviateActionsValidate has not yet been implemented")
 		}),
+		WeaviateBatchingActionsCreateHandler: WeaviateBatchingActionsCreateHandlerFunc(func(params WeaviateBatchingActionsCreateParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation WeaviateBatchingActionsCreate has not yet been implemented")
+		}),
+		WeaviateBatchingThingsCreateHandler: WeaviateBatchingThingsCreateHandlerFunc(func(params WeaviateBatchingThingsCreateParams, principal interface{}) middleware.Responder {
+			return middleware.NotImplemented("operation WeaviateBatchingThingsCreate has not yet been implemented")
+		}),
 		GraphqlWeaviateGraphqlPostHandler: graphql.WeaviateGraphqlPostHandlerFunc(func(params graphql.WeaviateGraphqlPostParams, principal interface{}) middleware.Responder {
 			return middleware.NotImplemented("operation GraphqlWeaviateGraphqlPost has not yet been implemented")
 		}),
@@ -271,6 +277,10 @@ type WeaviateAPI struct {
 	ActionsWeaviateActionsPropertiesUpdateHandler actions.WeaviateActionsPropertiesUpdateHandler
 	// ActionsWeaviateActionsValidateHandler sets the operation handler for the weaviate actions validate operation
 	ActionsWeaviateActionsValidateHandler actions.WeaviateActionsValidateHandler
+	// WeaviateBatchingActionsCreateHandler sets the operation handler for the weaviate batching actions create operation
+	WeaviateBatchingActionsCreateHandler WeaviateBatchingActionsCreateHandler
+	// WeaviateBatchingThingsCreateHandler sets the operation handler for the weaviate batching things create operation
+	WeaviateBatchingThingsCreateHandler WeaviateBatchingThingsCreateHandler
 	// GraphqlWeaviateGraphqlPostHandler sets the operation handler for the weaviate graphql post operation
 	GraphqlWeaviateGraphqlPostHandler graphql.WeaviateGraphqlPostHandler
 	// KeysWeaviateKeyCreateHandler sets the operation handler for the weaviate key create operation
@@ -454,6 +464,14 @@ func (o *WeaviateAPI) Validate() error {
 
 	if o.ActionsWeaviateActionsValidateHandler == nil {
 		unregistered = append(unregistered, "actions.WeaviateActionsValidateHandler")
+	}
+
+	if o.WeaviateBatchingActionsCreateHandler == nil {
+		unregistered = append(unregistered, "WeaviateBatchingActionsCreateHandler")
+	}
+
+	if o.WeaviateBatchingThingsCreateHandler == nil {
+		unregistered = append(unregistered, "WeaviateBatchingThingsCreateHandler")
 	}
 
 	if o.GraphqlWeaviateGraphqlPostHandler == nil {
@@ -762,6 +780,16 @@ func (o *WeaviateAPI) initHandlerCache() {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
 	o.handlers["POST"]["/actions/validate"] = actions.NewWeaviateActionsValidate(o.context, o.ActionsWeaviateActionsValidateHandler)
+
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/batching/actions"] = NewWeaviateBatchingActionsCreate(o.context, o.WeaviateBatchingActionsCreateHandler)
+
+	if o.handlers["POST"] == nil {
+		o.handlers["POST"] = make(map[string]http.Handler)
+	}
+	o.handlers["POST"]["/batching/things"] = NewWeaviateBatchingThingsCreate(o.context, o.WeaviateBatchingThingsCreateHandler)
 
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
