@@ -1426,47 +1426,8 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 	})
 
 	/*
-	 * Handle Schema
+	 * HANDLE SCHEM: NOTE, CAN BE FOUND IN /DATABASE
 	 */
-	api.SchemaWeaviateSchemaActionsCreateHandler = schema.WeaviateSchemaActionsCreateHandlerFunc(func(params schema.WeaviateSchemaActionsCreateParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsCreate has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaActionsDeleteHandler = schema.WeaviateSchemaActionsDeleteHandlerFunc(func(params schema.WeaviateSchemaActionsDeleteParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsDelete has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaActionsPropertiesAddHandler = schema.WeaviateSchemaActionsPropertiesAddHandlerFunc(func(params schema.WeaviateSchemaActionsPropertiesAddParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsPropertiesAdd has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaActionsPropertiesDeleteHandler = schema.WeaviateSchemaActionsPropertiesDeleteHandlerFunc(func(params schema.WeaviateSchemaActionsPropertiesDeleteParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsPropertiesDelete has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaActionsPropertiesUpdateHandler = schema.WeaviateSchemaActionsPropertiesUpdateHandlerFunc(func(params schema.WeaviateSchemaActionsPropertiesUpdateParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsPropertiesUpdate has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaActionsUpdateHandler = schema.WeaviateSchemaActionsUpdateHandlerFunc(func(params schema.WeaviateSchemaActionsUpdateParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsUpdate has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaDumpHandler = schema.WeaviateSchemaDumpHandlerFunc(func(params schema.WeaviateSchemaDumpParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaDump has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaThingsCreateHandler = schema.WeaviateSchemaThingsCreateHandlerFunc(func(params schema.WeaviateSchemaThingsCreateParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsCreate has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaThingsDeleteHandler = schema.WeaviateSchemaThingsDeleteHandlerFunc(func(params schema.WeaviateSchemaThingsDeleteParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsDelete has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaThingsPropertiesAddHandler = schema.WeaviateSchemaThingsPropertiesAddHandlerFunc(func(params schema.WeaviateSchemaThingsPropertiesAddParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsPropertiesAdd has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaThingsPropertiesDeleteHandler = schema.WeaviateSchemaThingsPropertiesDeleteHandlerFunc(func(params schema.WeaviateSchemaThingsPropertiesDeleteParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsPropertiesDelete has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaThingsPropertiesUpdateHandler = schema.WeaviateSchemaThingsPropertiesUpdateHandlerFunc(func(params schema.WeaviateSchemaThingsPropertiesUpdateParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsPropertiesUpdate has not yet been implemented")
-	})
-	api.SchemaWeaviateSchemaThingsUpdateHandler = schema.WeaviateSchemaThingsUpdateHandlerFunc(func(params schema.WeaviateSchemaThingsUpdateParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsUpdate has not yet been implemented")
-	})
 
 	api.ServerShutdown = func() {}
 
