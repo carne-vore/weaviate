@@ -70,7 +70,7 @@ type WeaviateThingsPatchParams struct {
 	*/
 	Body []*models.PatchDocument
 	/*ThingID
-	  Unique ID of the thing.
+	  Unique ID of the Thing.
 
 	*/
 	ThingID strfmt.UUID

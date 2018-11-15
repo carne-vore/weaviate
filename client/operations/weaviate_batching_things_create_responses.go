@@ -173,7 +173,7 @@ func NewWeaviateBatchingThingsCreateUnprocessableEntity() *WeaviateBatchingThing
 
 /*WeaviateBatchingThingsCreateUnprocessableEntity handles this case with default header values.
 
-Request body contains well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file?
+Request body is well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file?
 */
 type WeaviateBatchingThingsCreateUnprocessableEntity struct {
 	Payload *models.ErrorResponse
@@ -200,7 +200,7 @@ swagger:model WeaviateBatchingThingsCreateBody
 */
 type WeaviateBatchingThingsCreateBody struct {
 
-	// If `async` is true, return a 202 with the new ID of the Thing. You will receive this response before the data is persisted. If `async` is false, you will receive confirmation after the value is persisted. The value of `async` defaults to false.
+	// If `async` is true, return a 202 with the new ID of the Thing. You will receive this response before the persistance of the data is confirmed. If `async` is false, you will receive confirmation after the persistance of the data is confirmed. The value of `async` defaults to false.
 	Async bool `json:"async,omitempty"`
 
 	// Define which fields need to be returned. Default value is ALL

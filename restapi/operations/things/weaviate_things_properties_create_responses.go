@@ -100,7 +100,7 @@ func (o *WeaviateThingsPropertiesCreateForbidden) WriteResponse(rw http.Response
 // WeaviateThingsPropertiesCreateUnprocessableEntityCode is the HTTP code returned for type WeaviateThingsPropertiesCreateUnprocessableEntity
 const WeaviateThingsPropertiesCreateUnprocessableEntityCode int = 422
 
-/*WeaviateThingsPropertiesCreateUnprocessableEntity Request body contains well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the property exists or that it is a class?
+/*WeaviateThingsPropertiesCreateUnprocessableEntity Request body is well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the property exists or that it is a class?
 
 swagger:response weaviateThingsPropertiesCreateUnprocessableEntity
 */

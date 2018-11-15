@@ -32,7 +32,7 @@ import (
 type ThingsGetResponse struct {
 	Thing
 
-	// ID of the thing.
+	// ID of the Thing.
 	// Format: uuid
 	ActionID strfmt.UUID `json:"actionId,omitempty"`
 
@@ -167,7 +167,7 @@ func (m *ThingsGetResponse) UnmarshalBinary(b []byte) error {
 	return nil
 }
 
-// ThingsGetResponseAO1Result results for this specific thing.
+// ThingsGetResponseAO1Result Results for this specific Thing.
 // swagger:model ThingsGetResponseAO1Result
 type ThingsGetResponseAO1Result struct {
 

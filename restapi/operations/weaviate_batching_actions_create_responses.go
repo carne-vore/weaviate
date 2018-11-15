@@ -170,7 +170,7 @@ func (o *WeaviateBatchingActionsCreateForbidden) WriteResponse(rw http.ResponseW
 // WeaviateBatchingActionsCreateUnprocessableEntityCode is the HTTP code returned for type WeaviateBatchingActionsCreateUnprocessableEntity
 const WeaviateBatchingActionsCreateUnprocessableEntityCode int = 422
 
-/*WeaviateBatchingActionsCreateUnprocessableEntity Request body contains well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file?
+/*WeaviateBatchingActionsCreateUnprocessableEntity Request body is well-formed (i.e., syntactically correct), but semantically erroneous. Are you sure the class is defined in the configuration file?
 
 swagger:response weaviateBatchingActionsCreateUnprocessableEntity
 */

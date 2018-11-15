@@ -51,9 +51,9 @@ func NewWeaviateBatchingActionsCreate(ctx *middleware.Context, handler WeaviateB
 
 /*WeaviateBatchingActionsCreate swagger:route POST /batching/actions batching actions weaviateBatchingActionsCreate
 
-Creates new actions based on a thing template related to this key as a batch.
+Creates new Actions based on an Action template related to this key as a batch.
 
-Registers new actions as bulk. Given meta-data and schema values are validated.
+Register new Actions in bulk. Given meta-data and schema values are validated.
 
 */
 type WeaviateBatchingActionsCreate struct {
@@ -96,7 +96,7 @@ func (o *WeaviateBatchingActionsCreate) ServeHTTP(rw http.ResponseWriter, r *htt
 // swagger:model WeaviateBatchingActionsCreateBody
 type WeaviateBatchingActionsCreateBody struct {
 
-	// If `async` is true, return a 202 with the new ID of the Thing. You will receive this response before the data is persisted. If `async` is false, you will receive confirmation after the value is persisted. The value of `async` defaults to false.
+	// If `async` is true, return a 202 with the new ID of the Thing. You will receive this response before the persistance of the data is confirmed. If `async` is false, you will receive confirmation after the persistance of the data is confirmed. The value of `async` defaults to false.
 	Async bool `json:"async,omitempty"`
 
 	// Define which fields need to be returned. Default value is ALL

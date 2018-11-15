@@ -52,7 +52,7 @@ type WeaviateThingsPatchParams struct {
 	  In: body
 	*/
 	Body []*models.PatchDocument
-	/*Unique ID of the thing.
+	/*Unique ID of the Thing.
 	  Required: true
 	  In: path
 	*/

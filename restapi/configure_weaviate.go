@@ -255,7 +255,7 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 	}
 
 	/*
-	 * HANDLE EVENTS
+	 * HANDLE ACTIONS
 	 */
 	api.ActionsWeaviateActionsGetHandler = actions.WeaviateActionsGetHandlerFunc(func(params actions.WeaviateActionsGetParams, principal interface{}) middleware.Responder {
 		dbLock := db.ConnectorLock()
@@ -624,6 +624,40 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 
 		// Return 'No Content'
 		return actions.NewWeaviateActionsDeleteNoContent()
+	})
+	api.ActionsWeaviateActionsListHandler = actions.WeaviateActionsListHandlerFunc(func(params actions.WeaviateActionsListParams, principal interface{}) middleware.Responder {
+		dbLock := db.ConnectorLock()
+		defer dbLock.Unlock()
+
+		dbConnector := dbLock.Connector()
+
+		// Get limit and page
+		limit := getLimit(params.MaxResults)
+		page := getPage(params.Page)
+
+		// Get key-object
+		keyObject := principal.(*models.KeyTokenGetResponse)
+
+		// Get context from request
+		ctx := params.HTTPRequest.Context()
+
+		// This is a read function, validate if allowed to read?
+		if allowed, _ := auth.ActionsAllowed(ctx, []string{"read"}, principal, dbConnector, keyObject.KeyID); !allowed {
+			return things.NewWeaviateThingsActionsListForbidden()
+		}
+
+		// Initialize response
+		actionsResponse := models.ActionsListResponse{}
+		actionsResponse.Actions = []*models.ActionGetResponse{}
+
+		// List all results
+		err := dbConnector.ListActions(ctx, limit, (page-1)*limit, keyObject.KeyID, []*connutils.WhereQuery{}, &actionsResponse)
+
+		if err != nil {
+			messaging.ErrorMessage(err)
+		}
+
+		return things.NewWeaviateThingsActionsListOK().WithPayload(&actionsResponse)
 	})
 
 	/*
@@ -1012,7 +1046,6 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 		// Get is successful
 		return things.NewWeaviateThingsGetOK().WithPayload(&responseObject)
 	})
-
 	api.ThingsWeaviateThingHistoryGetHandler = things.WeaviateThingHistoryGetHandlerFunc(func(params things.WeaviateThingHistoryGetParams, principal interface{}) middleware.Responder {
 		dbLock := db.ConnectorLock()
 		defer dbLock.Unlock()
@@ -1062,7 +1095,6 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 
 		return things.NewWeaviateThingHistoryGetOK().WithPayload(historyResponse)
 	})
-
 	api.ThingsWeaviateThingsListHandler = things.WeaviateThingsListHandlerFunc(func(params things.WeaviateThingsListParams, principal interface{}) middleware.Responder {
 		dbLock := db.ConnectorLock()
 		defer dbLock.Unlock()
@@ -1297,6 +1329,9 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 		return meta.NewWeaviateMetaGetOK().WithPayload(metaResponse)
 	})
 
+	/*
+	 * HANDLE P2P
+	 */
 	api.P2PWeaviateP2pGenesisUpdateHandler = p2_p.WeaviateP2pGenesisUpdateHandlerFunc(func(params p2_p.WeaviateP2pGenesisUpdateParams) middleware.Responder {
 		new_peers := make([]libnetwork.Peer, 0)
 
@@ -1318,46 +1353,14 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 			return p2_p.NewWeaviateP2pGenesisUpdateInternalServerError()
 		}
 	})
-
 	api.P2PWeaviateP2pHealthHandler = p2_p.WeaviateP2pHealthHandlerFunc(func(params p2_p.WeaviateP2pHealthParams) middleware.Responder {
 		// For now, always just return success.
 		return middleware.NotImplemented("operation P2PWeaviateP2pHealth has not yet been implemented")
 	})
 
-	api.ActionsWeaviateActionsListHandler = actions.WeaviateActionsListHandlerFunc(func(params actions.WeaviateActionsListParams, principal interface{}) middleware.Responder {
-		dbLock := db.ConnectorLock()
-		defer dbLock.Unlock()
-
-		dbConnector := dbLock.Connector()
-
-		// Get limit and page
-		limit := getLimit(params.MaxResults)
-		page := getPage(params.Page)
-
-		// Get key-object
-		keyObject := principal.(*models.KeyTokenGetResponse)
-
-		// Get context from request
-		ctx := params.HTTPRequest.Context()
-
-		// This is a read function, validate if allowed to read?
-		if allowed, _ := auth.ActionsAllowed(ctx, []string{"read"}, principal, dbConnector, keyObject.KeyID); !allowed {
-			return things.NewWeaviateThingsActionsListForbidden()
-		}
-
-		// Initialize response
-		actionsResponse := models.ActionsListResponse{}
-		actionsResponse.Actions = []*models.ActionGetResponse{}
-
-		// List all results
-		err := dbConnector.ListActions(ctx, limit, (page-1)*limit, keyObject.KeyID, []*connutils.WhereQuery{}, &actionsResponse)
-
-		if err != nil {
-			messaging.ErrorMessage(err)
-		}
-
-		return things.NewWeaviateThingsActionsListOK().WithPayload(&actionsResponse)
-	})
+	/*
+	 * HANDLE GRAPHQL
+	 */
 	api.GraphqlWeaviateGraphqlPostHandler = graphql.WeaviateGraphqlPostHandlerFunc(func(params graphql.WeaviateGraphqlPostParams, principal interface{}) middleware.Responder {
 		defer messaging.TimeTrack(time.Now())
 		messaging.DebugMessage("Starting GraphQL resolving")
@@ -1410,6 +1413,59 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 
 		// Return the response
 		return graphql.NewWeaviateGraphqlPostOK().WithPayload(graphQLResponse)
+	})
+
+	/*
+	 * HANDLE BATCHING
+	 */
+	api.WeaviateBatchingActionsCreateHandler = operations.WeaviateBatchingActionsCreateHandlerFunc(func(params operations.WeaviateBatchingActionsCreateParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation .WeaviateBatchingActionsCreate has not yet been implemented")
+	})
+	api.WeaviateBatchingThingsCreateHandler = operations.WeaviateBatchingThingsCreateHandlerFunc(func(params operations.WeaviateBatchingThingsCreateParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation .WeaviateBatchingThingsCreate has not yet been implemented")
+	})
+
+	/*
+	 * Handle Schema
+	 */
+	api.SchemaWeaviateSchemaActionsCreateHandler = schema.WeaviateSchemaActionsCreateHandlerFunc(func(params schema.WeaviateSchemaActionsCreateParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsCreate has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaActionsDeleteHandler = schema.WeaviateSchemaActionsDeleteHandlerFunc(func(params schema.WeaviateSchemaActionsDeleteParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsDelete has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaActionsPropertiesAddHandler = schema.WeaviateSchemaActionsPropertiesAddHandlerFunc(func(params schema.WeaviateSchemaActionsPropertiesAddParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsPropertiesAdd has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaActionsPropertiesDeleteHandler = schema.WeaviateSchemaActionsPropertiesDeleteHandlerFunc(func(params schema.WeaviateSchemaActionsPropertiesDeleteParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsPropertiesDelete has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaActionsPropertiesUpdateHandler = schema.WeaviateSchemaActionsPropertiesUpdateHandlerFunc(func(params schema.WeaviateSchemaActionsPropertiesUpdateParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsPropertiesUpdate has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaActionsUpdateHandler = schema.WeaviateSchemaActionsUpdateHandlerFunc(func(params schema.WeaviateSchemaActionsUpdateParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaActionsUpdate has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaDumpHandler = schema.WeaviateSchemaDumpHandlerFunc(func(params schema.WeaviateSchemaDumpParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaDump has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaThingsCreateHandler = schema.WeaviateSchemaThingsCreateHandlerFunc(func(params schema.WeaviateSchemaThingsCreateParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsCreate has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaThingsDeleteHandler = schema.WeaviateSchemaThingsDeleteHandlerFunc(func(params schema.WeaviateSchemaThingsDeleteParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsDelete has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaThingsPropertiesAddHandler = schema.WeaviateSchemaThingsPropertiesAddHandlerFunc(func(params schema.WeaviateSchemaThingsPropertiesAddParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsPropertiesAdd has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaThingsPropertiesDeleteHandler = schema.WeaviateSchemaThingsPropertiesDeleteHandlerFunc(func(params schema.WeaviateSchemaThingsPropertiesDeleteParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsPropertiesDelete has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaThingsPropertiesUpdateHandler = schema.WeaviateSchemaThingsPropertiesUpdateHandlerFunc(func(params schema.WeaviateSchemaThingsPropertiesUpdateParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsPropertiesUpdate has not yet been implemented")
+	})
+	api.SchemaWeaviateSchemaThingsUpdateHandler = schema.WeaviateSchemaThingsUpdateHandlerFunc(func(params schema.WeaviateSchemaThingsUpdateParams, principal interface{}) middleware.Responder {
+		return middleware.NotImplemented("operation schema.WeaviateSchemaThingsUpdate has not yet been implemented")
 	})
 
 	api.ServerShutdown = func() {}

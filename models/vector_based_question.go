@@ -27,7 +27,7 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// VectorBasedQuestion receive question based on array of classes, properties and values.
+// VectorBasedQuestion Receive a question based on an array of classes, properties and values.
 // swagger:model VectorBasedQuestion
 type VectorBasedQuestion []*VectorBasedQuestionItems0
 
@@ -169,7 +169,7 @@ type VectorBasedQuestionItems0ClassPropsItems0 struct {
 	// props vectors
 	PropsVectors []float32 `json:"propsVectors"`
 
-	// String with valuename.
+	// String with value name.
 	Value string `json:"value,omitempty"`
 }
 

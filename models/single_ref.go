@@ -31,11 +31,11 @@ import (
 // swagger:model SingleRef
 type SingleRef struct {
 
-	// Location of the cross reference.
+	// Location of the cross-reference.
 	// Format: uuid
 	NrDollarCref strfmt.UUID `json:"$cref,omitempty"`
 
-	// url of location. http://localhost means this database. This option can be used to refer to other databases.
+	// Url of the location. http://localhost means this database. This option can be used to refer to other databases.
 	LocationURL *string `json:"locationUrl,omitempty"`
 
 	// Type should be Thing, Action or Key
