@@ -1426,7 +1426,7 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 	})
 
 	/*
-	 * HANDLE SCHEM: NOTE, CAN BE FOUND IN /DATABASE
+	 * HANDLE SCHEMA: NOTE, CAN BE FOUND IN /DATABASE
 	 */
 
 	api.ServerShutdown = func() {}
