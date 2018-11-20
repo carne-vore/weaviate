@@ -582,8 +582,14 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ActionCreate"
+                  }
+                },
                 "async": {
-                  "description": "If ` + "`" + `async` + "`" + ` is true, return a 202 with the new ID of the Thing. You will receive this response before the persistance of the data is confirmed. If ` + "`" + `async` + "`" + ` is false, you will receive confirmation after the persistance of the data is confirmed. The value of ` + "`" + `async` + "`" + ` defaults to false.",
+                  "description": "If ` + "`" + `async` + "`" + ` is true, return a 202 with the new ID of the Action. You will receive this response before the persistance of the data is confirmed. If ` + "`" + `async` + "`" + ` is false, you will receive confirmation after the persistance of the data is confirmed. The value of ` + "`" + `async` + "`" + ` defaults to false.",
                   "type": "boolean"
                 },
                 "fields": {
@@ -597,15 +603,9 @@ func init() {
                       "@class",
                       "schema",
                       "key",
-                      "thingId",
+                      "actionId",
                       "creationTimeUnix"
                     ]
-                  }
-                },
-                "things": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/ActionCreate"
                   }
                 }
               }
@@ -2845,11 +2845,6 @@ func init() {
         },
         {
           "properties": {
-            "actionId": {
-              "description": "ID of the Thing.",
-              "type": "string",
-              "format": "uuid"
-            },
             "result": {
               "description": "Results for this specific Thing.",
               "format": "object",
@@ -2867,6 +2862,11 @@ func init() {
                   ]
                 }
               }
+            },
+            "thingId": {
+              "description": "ID of the Thing.",
+              "type": "string",
+              "format": "uuid"
             }
           }
         }
@@ -3565,8 +3565,14 @@ func init() {
             "schema": {
               "type": "object",
               "properties": {
+                "actions": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/ActionCreate"
+                  }
+                },
                 "async": {
-                  "description": "If ` + "`" + `async` + "`" + ` is true, return a 202 with the new ID of the Thing. You will receive this response before the persistance of the data is confirmed. If ` + "`" + `async` + "`" + ` is false, you will receive confirmation after the persistance of the data is confirmed. The value of ` + "`" + `async` + "`" + ` defaults to false.",
+                  "description": "If ` + "`" + `async` + "`" + ` is true, return a 202 with the new ID of the Action. You will receive this response before the persistance of the data is confirmed. If ` + "`" + `async` + "`" + ` is false, you will receive confirmation after the persistance of the data is confirmed. The value of ` + "`" + `async` + "`" + ` defaults to false.",
                   "type": "boolean"
                 },
                 "fields": {
@@ -3580,15 +3586,9 @@ func init() {
                       "@class",
                       "schema",
                       "key",
-                      "thingId",
+                      "actionId",
                       "creationTimeUnix"
                     ]
-                  }
-                },
-                "things": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/ActionCreate"
                   }
                 }
               }
@@ -5836,11 +5836,6 @@ func init() {
         },
         {
           "properties": {
-            "actionId": {
-              "description": "ID of the Thing.",
-              "type": "string",
-              "format": "uuid"
-            },
             "result": {
               "description": "Results for this specific Thing.",
               "format": "object",
@@ -5858,6 +5853,11 @@ func init() {
                   ]
                 }
               }
+            },
+            "thingId": {
+              "description": "ID of the Thing.",
+              "type": "string",
+              "format": "uuid"
             }
           }
         }

@@ -6,7 +6,10 @@
 			"database_config": {
 				"host": "localhost",
 				"port": 1
-			}
+			},
+	        "local_schema": {
+          		"state_dir": "."
+        	}
 		},
 		"contextionary": {
 			"knn_file" : "test/contextionary/example.knn",

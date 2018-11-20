@@ -96,25 +96,25 @@ func (o *WeaviateBatchingActionsCreate) ServeHTTP(rw http.ResponseWriter, r *htt
 // swagger:model WeaviateBatchingActionsCreateBody
 type WeaviateBatchingActionsCreateBody struct {
 
-	// If `async` is true, return a 202 with the new ID of the Thing. You will receive this response before the persistance of the data is confirmed. If `async` is false, you will receive confirmation after the persistance of the data is confirmed. The value of `async` defaults to false.
+	// actions
+	Actions []*models.ActionCreate `json:"actions"`
+
+	// If `async` is true, return a 202 with the new ID of the Action. You will receive this response before the persistance of the data is confirmed. If `async` is false, you will receive confirmation after the persistance of the data is confirmed. The value of `async` defaults to false.
 	Async bool `json:"async,omitempty"`
 
 	// Define which fields need to be returned. Default value is ALL
 	Fields []*string `json:"fields"`
-
-	// things
-	Things []*models.ActionCreate `json:"things"`
 }
 
 // Validate validates this weaviate batching actions create body
 func (o *WeaviateBatchingActionsCreateBody) Validate(formats strfmt.Registry) error {
 	var res []error
 
-	if err := o.validateFields(formats); err != nil {
+	if err := o.validateActions(formats); err != nil {
 		res = append(res, err)
 	}
 
-	if err := o.validateThings(formats); err != nil {
+	if err := o.validateFields(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -124,11 +124,36 @@ func (o *WeaviateBatchingActionsCreateBody) Validate(formats strfmt.Registry) er
 	return nil
 }
 
+func (o *WeaviateBatchingActionsCreateBody) validateActions(formats strfmt.Registry) error {
+
+	if swag.IsZero(o.Actions) { // not required
+		return nil
+	}
+
+	for i := 0; i < len(o.Actions); i++ {
+		if swag.IsZero(o.Actions[i]) { // not required
+			continue
+		}
+
+		if o.Actions[i] != nil {
+			if err := o.Actions[i].Validate(formats); err != nil {
+				if ve, ok := err.(*errors.Validation); ok {
+					return ve.ValidateName("body" + "." + "actions" + "." + strconv.Itoa(i))
+				}
+				return err
+			}
+		}
+
+	}
+
+	return nil
+}
+
 var weaviateBatchingActionsCreateBodyFieldsItemsEnum []interface{}
 
 func init() {
 	var res []string
-	if err := json.Unmarshal([]byte(`["ALL","@class","schema","key","thingId","creationTimeUnix"]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`["ALL","@class","schema","key","actionId","creationTimeUnix"]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {
@@ -157,31 +182,6 @@ func (o *WeaviateBatchingActionsCreateBody) validateFields(formats strfmt.Regist
 		// value enum
 		if err := o.validateFieldsItemsEnum("body"+"."+"fields"+"."+strconv.Itoa(i), "body", *o.Fields[i]); err != nil {
 			return err
-		}
-
-	}
-
-	return nil
-}
-
-func (o *WeaviateBatchingActionsCreateBody) validateThings(formats strfmt.Registry) error {
-
-	if swag.IsZero(o.Things) { // not required
-		return nil
-	}
-
-	for i := 0; i < len(o.Things); i++ {
-		if swag.IsZero(o.Things[i]) { // not required
-			continue
-		}
-
-		if o.Things[i] != nil {
-			if err := o.Things[i].Validate(formats); err != nil {
-				if ve, ok := err.(*errors.Validation); ok {
-					return ve.ValidateName("body" + "." + "things" + "." + strconv.Itoa(i))
-				}
-				return err
-			}
 		}
 
 	}

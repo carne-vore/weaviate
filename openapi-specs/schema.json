@@ -669,7 +669,7 @@
         },
         {
           "properties": {
-            "actionId": {
+            "thingId": {
               "description": "ID of the Thing.",
               "format": "uuid",
               "type": "string"
@@ -1445,7 +1445,7 @@
               "properties": {
                 "async": {
                   "type": "boolean",
-                  "description": "If `async` is true, return a 202 with the new ID of the Thing. You will receive this response before the persistance of the data is confirmed. If `async` is false, you will receive confirmation after the persistance of the data is confirmed. The value of `async` defaults to false."
+                  "description": "If `async` is true, return a 202 with the new ID of the Action. You will receive this response before the persistance of the data is confirmed. If `async` is false, you will receive confirmation after the persistance of the data is confirmed. The value of `async` defaults to false."
                 },
                 "fields": {
                   "description": "Define which fields need to be returned. Default value is ALL",
@@ -1458,12 +1458,12 @@
                       "@class",
                       "schema",
                       "key",
-                      "thingId",
+                      "actionId",
                       "creationTimeUnix"
                     ]
                   }
                 },
-                "things": {
+                "actions": {
                   "type": "array",
                   "items": {
                     "$ref": "#/definitions/ActionCreate"

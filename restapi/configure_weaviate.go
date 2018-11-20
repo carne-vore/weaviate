@@ -58,6 +58,7 @@ import (
 	"github.com/creativesoftwarefdn/weaviate/restapi/operations/actions"
 	"github.com/creativesoftwarefdn/weaviate/restapi/operations/keys"
 	"github.com/creativesoftwarefdn/weaviate/restapi/operations/things"
+	rest_api_utils "github.com/creativesoftwarefdn/weaviate/restapi/rest-api-utils"
 	"github.com/creativesoftwarefdn/weaviate/validation"
 
 	libcontextionary "github.com/creativesoftwarefdn/weaviate/contextionary"
@@ -524,7 +525,7 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 		// Get context from request
 		ctx := params.HTTPRequest.Context()
 
-		// This is a read function, validate if allowed to read?
+		// This is a write function, validate if allowed to write?
 		if allowed, _ := auth.ActionsAllowed(ctx, []string{"write"}, principal, dbConnector, nil); !allowed {
 			return actions.NewWeaviateActionsCreateForbidden()
 		}
@@ -575,6 +576,7 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 			}
 			return actions.NewWeaviateActionsCreateOK().WithPayload(responseObject)
 		}
+
 	})
 	api.ActionsWeaviateActionsDeleteHandler = actions.WeaviateActionsDeleteHandlerFunc(func(params actions.WeaviateActionsDeleteParams, principal interface{}) middleware.Responder {
 		dbLock := db.ConnectorLock()
@@ -1419,10 +1421,111 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 	 * HANDLE BATCHING
 	 */
 	api.WeaviateBatchingActionsCreateHandler = operations.WeaviateBatchingActionsCreateHandlerFunc(func(params operations.WeaviateBatchingActionsCreateParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation .WeaviateBatchingActionsCreate has not yet been implemented")
+		defer messaging.TimeTrack(time.Now())
+
+		dbLock := db.ConnectorLock()
+		requestLocks := rest_api_utils.RequestLocks{
+			DBLock:      dbLock,
+			DelayedLock: delayed_unlock.New(dbLock),
+			DBConnector: dbLock.Connector(),
+		}
+
+		defer requestLocks.DelayedLock.Unlock()
+
+		// Get context from request
+		ctx := params.HTTPRequest.Context()
+
+		// This is a write function, validate if allowed to write?
+		if allowed, _ := auth.ActionsAllowed(ctx, []string{"write"}, principal, requestLocks.DBConnector, nil); !allowed {
+			return operations.NewWeaviateBatchingActionsCreateForbidden()
+		}
+
+		amountOfBatchedRequests := len(params.Body.Actions)
+		errorResponse := &models.ErrorResponse{}
+
+		if amountOfBatchedRequests == 0 {
+			return operations.NewWeaviateBatchingActionsCreateUnprocessableEntity().WithPayload(errorResponse)
+		}
+
+		requestResults := make(chan rest_api_utils.BatchedActionsCreateRequestResponse, amountOfBatchedRequests)
+
+		wg := new(sync.WaitGroup)
+
+		async := params.Body.Async
+
+		// Generate a goroutine for each separate request
+		for requestIndex, batchedRequest := range params.Body.Actions {
+			wg.Add(1)
+			go handleBatchedActionsCreateRequest(wg, ctx, batchedRequest, requestIndex, &requestResults, async, principal, &requestLocks)
+		}
+
+		wg.Wait()
+
+		close(requestResults)
+
+		batchedRequestResponse := make([]*models.ActionsGetResponse, amountOfBatchedRequests)
+
+		// Add the requests to the result array in the correct order
+		for batchedRequestResult := range requestResults {
+			batchedRequestResponse[batchedRequestResult.RequestIndex] = batchedRequestResult.Response
+		}
+
+		return operations.NewWeaviateBatchingActionsCreateOK().WithPayload(batchedRequestResponse)
+
 	})
+
 	api.WeaviateBatchingThingsCreateHandler = operations.WeaviateBatchingThingsCreateHandlerFunc(func(params operations.WeaviateBatchingThingsCreateParams, principal interface{}) middleware.Responder {
-		return middleware.NotImplemented("operation .WeaviateBatchingThingsCreate has not yet been implemented")
+		defer messaging.TimeTrack(time.Now())
+
+		dbLock := db.ConnectorLock()
+		requestLocks := rest_api_utils.RequestLocks{
+			DBLock:      dbLock,
+			DelayedLock: delayed_unlock.New(dbLock),
+			DBConnector: dbLock.Connector(),
+		}
+
+		defer requestLocks.DelayedLock.Unlock()
+
+		// Get context from request
+		ctx := params.HTTPRequest.Context()
+
+		// This is a write function, validate if allowed to write?
+		if allowed, _ := auth.ActionsAllowed(ctx, []string{"write"}, principal, requestLocks.DBConnector, nil); !allowed {
+			return operations.NewWeaviateBatchingThingsCreateForbidden()
+		}
+
+		amountOfBatchedRequests := len(params.Body.Things)
+		errorResponse := &models.ErrorResponse{}
+
+		if amountOfBatchedRequests == 0 {
+			return operations.NewWeaviateBatchingThingsCreateUnprocessableEntity().WithPayload(errorResponse)
+		}
+
+		requestResults := make(chan rest_api_utils.BatchedThingsCreateRequestResponse, amountOfBatchedRequests)
+
+		wg := new(sync.WaitGroup)
+
+		async := params.Body.Async
+
+		// Generate a goroutine for each separate request
+		for requestIndex, batchedRequest := range params.Body.Things {
+			wg.Add(1)
+			go handleBatchedThingsCreateRequest(wg, ctx, batchedRequest, requestIndex, &requestResults, async, principal, &requestLocks)
+		}
+
+		wg.Wait()
+
+		close(requestResults)
+
+		batchedRequestResponse := make([]*models.ThingsGetResponse, amountOfBatchedRequests)
+
+		// Add the requests to the result array in the correct order
+		for batchedRequestResult := range requestResults {
+			batchedRequestResponse[batchedRequestResult.RequestIndex] = batchedRequestResult.Response
+		}
+
+		return operations.NewWeaviateBatchingThingsCreateOK().WithPayload(batchedRequestResponse)
+
 	})
 
 	/*
@@ -1432,6 +1535,172 @@ func configureAPI(api *operations.WeaviateAPI) http.Handler {
 	api.ServerShutdown = func() {}
 
 	return setupGlobalMiddleware(api.Serve(setupMiddlewares))
+}
+
+func handleBatchedActionsCreateRequest(wg *sync.WaitGroup, ctx context.Context, batchedRequest *models.ActionCreate, requestIndex int, requestResults *chan rest_api_utils.BatchedActionsCreateRequestResponse, async bool, principal interface{}, requestLocks *rest_api_utils.RequestLocks) {
+	defer wg.Done()
+
+	// Generate UUID for the new object
+	UUID := connutils.GenerateUUID()
+
+	// Validate schema given in body with the weaviate schema
+	databaseSchema := schema.HackFromDatabaseSchema(requestLocks.DBLock.GetSchema())
+
+	// Create Key-ref object
+	url := serverConfig.GetHostAddress()
+	keyRef := &models.SingleRef{
+		LocationURL:  &url,
+		NrDollarCref: principal.(*models.KeyTokenGetResponse).KeyID,
+		Type:         string(connutils.RefTypeKey),
+	}
+
+	// Create Action object
+	action := &models.Action{}
+	action.AtClass = batchedRequest.AtClass
+	action.AtContext = batchedRequest.AtContext
+	action.Schema = batchedRequest.Schema
+	action.CreationTimeUnix = connutils.NowUnix()
+	action.LastUpdateTimeUnix = 0
+	action.Key = keyRef
+
+	// Create request result object
+	result := &models.ActionsGetResponseAO1Result{}
+	result.Errors = nil
+
+	// Create request response object
+	responseObject := &models.ActionsGetResponse{}
+	responseObject.Action = *action
+	responseObject.ActionID = UUID
+	responseObject.Result = result
+
+	resultStatus := models.ActionsGetResponseAO1ResultStatusSUCCESS
+
+	validatedErr := validation.ValidateActionBody(ctx, batchedRequest, databaseSchema, requestLocks.DBConnector, serverConfig, principal.(*models.KeyTokenGetResponse))
+
+	if validatedErr != nil {
+		// Edit request result status
+		responseObject.Result.Errors = createErrorResponseObject(validatedErr.Error())
+		resultStatus = models.ActionsGetResponseAO1ResultStatusFAILED
+		responseObject.Result.Status = &resultStatus
+	} else {
+		// Handle asynchronous requests
+		if async {
+			requestLocks.DelayedLock.IncSteps()
+			resultStatus = models.ActionsGetResponseAO1ResultStatusPENDING
+			responseObject.Result.Status = &resultStatus
+
+			go func() {
+				defer requestLocks.DelayedLock.Unlock()
+				err := requestLocks.DBConnector.AddAction(ctx, action, UUID)
+
+				if err != nil {
+					// Edit request result status
+					resultStatus = models.ActionsGetResponseAO1ResultStatusFAILED
+					responseObject.Result.Status = &resultStatus
+					responseObject.Result.Errors = createErrorResponseObject(err.Error())
+				}
+			}()
+		} else {
+			// Handle synchronous requests
+			err := requestLocks.DBConnector.AddAction(ctx, action, UUID)
+
+			if err != nil {
+				// Edit request result status
+				resultStatus = models.ActionsGetResponseAO1ResultStatusFAILED
+				responseObject.Result.Status = &resultStatus
+				responseObject.Result.Errors = createErrorResponseObject(err.Error())
+			}
+		}
+	}
+
+	// Send this batched request's response and its place in the batch request to the channel
+	*requestResults <- rest_api_utils.BatchedActionsCreateRequestResponse{
+		requestIndex,
+		responseObject,
+	}
+}
+
+func handleBatchedThingsCreateRequest(wg *sync.WaitGroup, ctx context.Context, batchedRequest *models.ThingCreate, requestIndex int, requestResults *chan rest_api_utils.BatchedThingsCreateRequestResponse, async bool, principal interface{}, requestLocks *rest_api_utils.RequestLocks) {
+	defer wg.Done()
+
+	// Generate UUID for the new object
+	UUID := connutils.GenerateUUID()
+
+	// Validate schema given in body with the weaviate schema
+	databaseSchema := schema.HackFromDatabaseSchema(requestLocks.DBLock.GetSchema())
+
+	// Create Key-ref object
+	url := serverConfig.GetHostAddress()
+	keyRef := &models.SingleRef{
+		LocationURL:  &url,
+		NrDollarCref: principal.(*models.KeyTokenGetResponse).KeyID,
+		Type:         string(connutils.RefTypeKey),
+	}
+
+	// Create Thing object
+	thing := &models.Thing{}
+	thing.AtClass = batchedRequest.AtClass
+	thing.AtContext = batchedRequest.AtContext
+	thing.Schema = batchedRequest.Schema
+	thing.CreationTimeUnix = connutils.NowUnix()
+	thing.LastUpdateTimeUnix = 0
+	thing.Key = keyRef
+
+	// Create request result object
+	result := &models.ThingsGetResponseAO1Result{}
+	result.Errors = nil
+
+	// Create request response object
+	responseObject := &models.ThingsGetResponse{}
+	responseObject.Thing = *thing
+	responseObject.ThingID = UUID
+	responseObject.Result = result
+
+	resultStatus := models.ThingsGetResponseAO1ResultStatusSUCCESS
+
+	validatedErr := validation.ValidateThingBody(ctx, batchedRequest, databaseSchema, requestLocks.DBConnector, serverConfig, principal.(*models.KeyTokenGetResponse))
+
+	if validatedErr != nil {
+		// Edit request result status
+		responseObject.Result.Errors = createErrorResponseObject(validatedErr.Error())
+		resultStatus = models.ThingsGetResponseAO1ResultStatusFAILED
+		responseObject.Result.Status = &resultStatus
+	} else {
+		// Handle asynchronous requests
+		if async {
+			requestLocks.DelayedLock.IncSteps()
+			resultStatus = models.ThingsGetResponseAO1ResultStatusPENDING
+			responseObject.Result.Status = &resultStatus
+
+			go func() {
+				defer requestLocks.DelayedLock.Unlock()
+				err := requestLocks.DBConnector.AddThing(ctx, thing, UUID)
+
+				if err != nil {
+					// Edit request result status
+					resultStatus = models.ThingsGetResponseAO1ResultStatusFAILED
+					responseObject.Result.Status = &resultStatus
+					responseObject.Result.Errors = createErrorResponseObject(err.Error())
+				}
+			}()
+		} else {
+			// Handle synchronous requests
+			err := requestLocks.DBConnector.AddThing(ctx, thing, UUID)
+
+			if err != nil {
+				// Edit request result status
+				resultStatus = models.ThingsGetResponseAO1ResultStatusFAILED
+				responseObject.Result.Status = &resultStatus
+				responseObject.Result.Errors = createErrorResponseObject(err.Error())
+			}
+		}
+	}
+
+	// Send this batched request's response and its place in the batch request to the channel
+	*requestResults <- rest_api_utils.BatchedThingsCreateRequestResponse{
+		requestIndex,
+		responseObject,
+	}
 }
 
 // The TLS configuration before HTTPS server starts.
